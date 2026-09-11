@@ -148,26 +148,40 @@
   .grouped-total .value{ font-size:15px; font-weight:800; color:var(--ink-1); }
   .card-edit-link{ font-size:10.5px; color:var(--ink-3); font-weight:600; margin-top:10px; display:inline-block; cursor:pointer;}
 
-  /* ---- Flip card ---- */
-  .flip-card{ flex:0 0 250px; scroll-snap-align:start; perspective:1400px; cursor:pointer; min-height:150px; }
-  .flip-inner{ position:relative; width:100%; transition:transform .55s cubic-bezier(.4,.2,.2,1); transform-style:preserve-3d; }
-  .flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
-  .flip-front, .flip-back{ backface-visibility:hidden; -webkit-backface-visibility:hidden; }
-  .flip-front{ position:relative; }
-  .flip-back{
-    position:absolute; top:0; left:0; width:100%; height:100%;
-    transform:rotateY(180deg); overflow-y:auto;
-  }
-  .flip-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .flip-head span:first-child{ font-size:13px; font-weight:800; color:var(--ink-1); }
+  /* ---- Card tap target ---- */
+  .card-tile-tap{ flex:0 0 250px; scroll-snap-align:start; cursor:pointer; }
   .flip-hint{ font-size:9.5px; color:var(--ink-3); font-weight:600; }
-  .flip-sub{ font-size:10.5px; font-weight:700; color:var(--ink-3); margin:10px 0 5px; text-transform:uppercase; letter-spacing:.03em; }
+  .flip-sub{ font-size:10.5px; font-weight:700; color:var(--ink-3); margin:14px 0 6px; text-transform:uppercase; letter-spacing:.03em; }
   .flip-sub:first-of-type{ margin-top:0; }
-  .flip-tx{ display:flex; align-items:center; gap:8px; font-size:12px; padding:5px 0; border-bottom:1px dashed var(--border); }
+  .flip-tx{ display:flex; align-items:center; gap:8px; font-size:13px; padding:8px 0; border-bottom:1px dashed var(--border); }
   .flip-tx span:first-child{ flex:1; font-weight:600; color:var(--ink-1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .flip-cat{ font-size:10px; color:var(--accent); background:var(--accent-soft); padding:2px 7px; border-radius:20px; font-weight:700; flex-shrink:0; }
+  .flip-cat{ font-size:10.5px; color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:20px; font-weight:700; flex-shrink:0; }
   .flip-tx .mono{ font-weight:700; color:var(--ink-1); flex-shrink:0; }
   .flip-empty{ font-size:11.5px; color:var(--ink-3); text-align:center; padding:20px 0; }
+
+  /* ---- Bill detail modal (tap a card to expand) ---- */
+  .bill-modal-backdrop{
+    display:none; position:fixed; inset:0; background:rgba(30,25,15,.4);
+    z-index:100; align-items:flex-end; justify-content:center;
+  }
+  .bill-modal-backdrop.open{ display:flex; }
+  .bill-modal{
+    width:100%; max-width:430px; height:78vh; background:var(--surface);
+    border-radius:22px 22px 0 0; display:flex; flex-direction:column;
+    box-shadow:0 -10px 40px -10px rgba(0,0,0,.3);
+    transform:translateY(100%); transition:transform .32s cubic-bezier(.32,.72,0,1);
+  }
+  .bill-modal-backdrop.open .bill-modal{ transform:translateY(0); }
+  .bill-modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 20px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .bill-modal-head span{ font-size:15px; font-weight:800; color:var(--ink-1); }
+  .bill-modal-close{
+    width:30px; height:30px; border-radius:50%; border:none; background:var(--surface-alt);
+    color:var(--ink-2); font-size:13px; cursor:pointer;
+  }
+  .bill-modal-body{ padding:16px 20px 32px; overflow-y:auto; flex:1; -webkit-overflow-scrolling:touch; }
 
   /* ---- Bottom tab bar ---- */
   .home{ padding-bottom:92px; }
@@ -351,6 +365,36 @@
     border:1px solid var(--border); background:var(--bg); border-radius:8px; padding:7px 9px;
     font-size:16px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1);
   }
+
+  /* ---- Schedule card (結帳日/繳款日) ---- */
+  .schedule-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px; margin-bottom:10px;
+  }
+  .schedule-card .title{ font-size:13.5px; font-weight:700; color:var(--ink-1); margin-bottom:10px; }
+  .schedule-fields{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .schedule-field label{ font-size:11px; color:var(--ink-2); font-weight:600; display:block; margin-bottom:4px; }
+  .schedule-field input{
+    width:100%; border:1px solid var(--border); background:var(--bg); border-radius:9px;
+    padding:9px 10px; font-size:16px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1);
+  }
+  .schedule-offset{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-2); margin-bottom:10px; }
+  .schedule-offset input{ width:auto; }
+  .schedule-save{
+    width:100%; background:var(--accent-soft); color:var(--accent); border:none;
+    border-radius:9px; padding:9px 0; font-size:12.5px; font-weight:700; cursor:pointer;
+  }
+
+  /* ---- Bank order list ---- */
+  .bank-order-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px dashed var(--border); }
+  .bank-order-row:last-child{ border-bottom:none; }
+  .bank-order-row .title{ flex:1; font-size:13.5px; font-weight:700; color:var(--ink-1); }
+  .bank-order-row .move-btns{ display:flex; gap:6px; }
+  .bank-order-row .move-btns button{
+    width:28px; height:28px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-alt); color:var(--ink-2); font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .bank-order-row .move-btns button:disabled{ opacity:.3; cursor:default; }
 </style>
 </head>
 <body>
@@ -587,6 +631,14 @@
       </div>
 
       <div class="section">
+        <div class="section-head"><h2>銀行順序</h2></div>
+        <div class="flip-hint" style="text-align:left; margin-bottom:10px; display:block; line-height:1.6;">
+          調整銀行在選單、卡片牆上出現的順序。
+        </div>
+        <div id="bank-order-list"></div>
+      </div>
+
+      <div class="section">
         <div class="section-head"><h2>結帳日／繳款日設定</h2></div>
         <div class="flip-hint" style="text-align:left; margin-bottom:10px; display:block; line-height:1.6;">
           每組「持卡人＋銀行」只要設定一次，之後每個月自動套用同一天。如果是月中結帳、下個月初才繳款，記得勾選「跨到下個月」。
@@ -621,6 +673,10 @@
           <div class="section-head" style="margin-top:18px;">
             <h2 style="font-size:14px;">解析結果（<span id="pdf-review-count">0</span> 筆，請確認）</h2>
           </div>
+          <div class="form-row" style="margin-bottom:10px;">
+            <label for="pdf-billing-month">這份帳單屬於哪個月（自動偵測，錯了可以改）</label>
+            <input type="month" id="pdf-billing-month">
+          </div>
           <div id="pdf-total-check"></div>
           <div id="pdf-review-list"></div>
           <div class="form-actions" style="margin-top:12px;">
@@ -643,6 +699,16 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="bill-modal-backdrop" id="bill-modal-backdrop" onclick="if(event.target===this) closeBillModal()">
+    <div class="bill-modal">
+      <div class="bill-modal-head">
+        <span id="bill-modal-title">消費明細</span>
+        <button class="bill-modal-close" onclick="closeBillModal()">✕</button>
+      </div>
+      <div class="bill-modal-body" id="bill-modal-body"></div>
     </div>
   </div>
 
@@ -752,6 +818,7 @@
     await renderDueList();
     await renderCardManageList();
     await renderStatementManageList();
+    await renderBankOrderList();
     await renderFxList();
     await renderCategoryRank();
     await loadPdfTargetCardOptions();
@@ -786,7 +853,7 @@
   async function loadFormOptions(){
     const [{ data: owners, error: oErr }, { data: banks, error: bErr }] = await Promise.all([
       sb.from('card_owners').select('id, name').eq('household_id', currentHousehold.id).order('name'),
-      sb.from('card_banks').select('id, name').order('name'),
+      sb.from('card_banks').select('id, name').order('sort_order', { ascending: true, nullsFirst: false }),
     ]);
     if (oErr) { console.error(oErr); }
     if (bErr) { console.error(bErr); }
@@ -839,9 +906,11 @@
     if (bankSelect.value !== NEW_BANK_VALUE) return;
     const name = prompt('新增銀行的名稱（例如：中國信託）');
     if (!name || !name.trim()) { bankSelect.selectedIndex = 0; return; }
+    const { data: maxRow } = await sb.from('card_banks').select('sort_order').order('sort_order', { ascending: false }).limit(1).single();
+    const nextOrder = (maxRow?.sort_order || 0) + 1;
     const { data, error } = await sb
       .from('card_banks')
-      .insert({ name: name.trim() })
+      .insert({ name: name.trim(), sort_order: nextOrder })
       .select('id, name')
       .single();
     if (error) { setFormStatus('新增銀行失敗：' + error.message); bankSelect.selectedIndex = 0; return; }
@@ -876,6 +945,7 @@
     await renderCardWall();
     await renderCardManageList();
     await renderStatementManageList();
+    await renderBankOrderList();
     await renderDueList();
     await loadTxFormOptions();
     await loadPdfTargetCardOptions();
@@ -990,26 +1060,62 @@
     el.innerHTML = pairs.map(p => {
       const key = p.owner_id + '|' + p.bank_id;
       const s = schedMap[key] || {};
-      return `<div class="manage-row" style="flex-wrap:wrap;">
-        <div class="info" style="flex-basis:100%; margin-bottom:8px;">
-          <div class="title">${escapeHtml(p.ownerName)} · ${escapeHtml(p.bankName)}</div>
-          <div class="sub">結帳日／繳款日設一次，每月自動套用</div>
+      const safeKey = key.replace('|', '-');
+      return `<div class="schedule-card">
+        <div class="title">${escapeHtml(p.ownerName)} · ${escapeHtml(p.bankName)}</div>
+        <div class="schedule-fields">
+          <div class="schedule-field">
+            <label for="sched-closing-${safeKey}">結帳日（幾號）</label>
+            <input type="number" min="1" max="31" id="sched-closing-${safeKey}" value="${s.closing_day ?? ''}">
+          </div>
+          <div class="schedule-field">
+            <label for="sched-due-${safeKey}">繳款日（幾號）</label>
+            <input type="number" min="1" max="31" id="sched-due-${safeKey}" value="${s.due_day ?? ''}">
+          </div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%;">
-          <label style="font-size:11px; color:var(--ink-2);">結帳日
-            <input type="number" min="1" max="31" class="mini-date" style="width:52px;" id="sched-closing-${key.replace('|','-')}" value="${s.closing_day ?? ''}">
-          </label>
-          <label style="font-size:11px; color:var(--ink-2);">繳款日
-            <input type="number" min="1" max="31" class="mini-date" style="width:52px;" id="sched-due-${key.replace('|','-')}" value="${s.due_day ?? ''}">
-          </label>
-          <label style="font-size:11px; color:var(--ink-2); display:flex; align-items:center; gap:4px;">
-            <input type="checkbox" style="width:auto;" id="sched-offset-${key.replace('|','-')}" ${s.due_month_offset === 1 ? 'checked' : ''}>
-            繳款日跨到下個月
-          </label>
-          <button class="edit-btn" style="margin-left:auto;" onclick="saveSchedule('${p.owner_id}', '${p.bank_id}')">儲存</button>
-        </div>
+        <label class="schedule-offset">
+          <input type="checkbox" id="sched-offset-${safeKey}" ${s.due_month_offset === 1 ? 'checked' : ''}>
+          繳款日跨到下個月
+        </label>
+        <button class="schedule-save" onclick="saveSchedule('${p.owner_id}', '${p.bank_id}')">儲存這組設定</button>
       </div>`;
     }).join('');
+  }
+
+  // ---- 設定：銀行順序管理 ----
+  async function renderBankOrderList(){
+    const el = document.getElementById('bank-order-list');
+    if (!el) return;
+    el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">讀取中…</div>';
+    const { data: banks, error } = await sb.from('card_banks').select('id, name, sort_order').order('sort_order', { ascending: true, nullsFirst: false });
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!banks || banks.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有銀行。</div>'; return; }
+
+    el.innerHTML = banks.map((b, i) => `
+      <div class="bank-order-row">
+        <div class="title">${escapeHtml(b.name)}</div>
+        <div class="move-btns">
+          <button ${i === 0 ? 'disabled' : ''} onclick="moveBankOrder(${i}, -1)">↑</button>
+          <button ${i === banks.length - 1 ? 'disabled' : ''} onclick="moveBankOrder(${i}, 1)">↓</button>
+        </div>
+      </div>`).join('');
+
+    window._bankOrderCache = banks;
+  }
+
+  async function moveBankOrder(index, dir){
+    const banks = window._bankOrderCache;
+    const otherIndex = index + dir;
+    if (!banks || otherIndex < 0 || otherIndex >= banks.length) return;
+    const a = banks[index], b = banks[otherIndex];
+    const aOrder = a.sort_order, bOrder = b.sort_order;
+    const { error } = await sb.from('card_banks').upsert([
+      { id: a.id, name: a.name, sort_order: bOrder },
+      { id: b.id, name: b.name, sort_order: aOrder },
+    ]);
+    if (error) { alert('調整順序失敗：' + error.message); return; }
+    await renderBankOrderList();
+    await loadFormOptions();
   }
 
   async function saveSchedule(ownerId, bankId){
@@ -1139,7 +1245,10 @@
     return 'var(--safe)';
   }
 
+  let billDetailContents = [];
+
   async function renderCardWall(){
+    billDetailContents = [];
     const wall = document.getElementById('card-wall');
     wall.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">讀取卡片中…</div>';
 
@@ -1162,27 +1271,41 @@
       return;
     }
 
-    // 撈本月每張卡的消費明細（總額用來算用量條，明細用來放翻轉卡片背面）
-    const { start, end } = getMonthRange(currentYearMonth());
-    const { data: txs, error: txErr } = await sb
-      .from('card_transactions')
-      .select('id, card_id, date, store_name, amount_twd, card_categories(name)')
+    // 找出每個「持卡人＋銀行」目前最新一期的帳單（優先用帳單本身的「本期新增」金額，而不是日曆月加總）
+    const { data: statements, error: stmtErr } = await sb
+      .from('card_statements')
+      .select('id, owner_id, bank_id, year_month, total_amount')
       .eq('household_id', currentHousehold.id)
-      .gte('date', start)
-      .lte('date', end)
-      .order('date', { ascending: false });
-    if (txErr) console.error('讀取本月消費明細失敗:', txErr);
+      .order('year_month', { ascending: false });
+    if (stmtErr) console.error('讀取帳單失敗:', stmtErr);
+
+    const latestStatementByPair = {};
+    (statements || []).forEach(s => {
+      const key = s.owner_id + '|' + s.bank_id;
+      if (!latestStatementByPair[key]) latestStatementByPair[key] = s; // 已依 year_month 由新到舊排序，第一筆就是最新一期
+    });
+
+    const statementIds = Object.values(latestStatementByPair).map(s => s.id);
+    let txs = [];
+    if (statementIds.length > 0) {
+      const { data, error: txErr } = await sb
+        .from('card_transactions')
+        .select('id, card_id, date, store_name, amount_twd, card_categories(name)')
+        .in('statement_id', statementIds)
+        .order('date', { ascending: false });
+      if (txErr) console.error('讀取帳單明細失敗:', txErr);
+      txs = data || [];
+    }
 
     const totalsByCard = {};
     const txsByCard = {};
-    (txs || []).forEach(t => {
+    txs.forEach(t => {
       totalsByCard[t.card_id] = (totalsByCard[t.card_id] || 0) + Number(t.amount_twd);
       txsByCard[t.card_id] = txsByCard[t.card_id] || [];
       txsByCard[t.card_id].push(t);
     });
 
-    const householdTotal = Object.values(totalsByCard).reduce((s, v) => s + v, 0);
-    document.getElementById('hero-total').textContent = householdTotal.toLocaleString();
+    let householdTotal = 0;
 
     // 依持卡人分組，再依銀行分組（同銀行多張卡合併成一張大卡）
     const byOwner = {};
@@ -1198,15 +1321,13 @@
     Object.keys(byOwner).forEach(ownerName => {
       const banks = byOwner[ownerName];
       const bankNames = Object.keys(banks);
-      let ownerTotal = 0;
-      bankNames.forEach(bn => banks[bn].forEach(c => { ownerTotal += (totalsByCard[c.id] || 0); }));
 
       html += `<div class="owner-block">
         <div class="owner-head">
           <div class="owner-avatar">${escapeHtml(ownerName.slice(0,1))}</div>
           <div>
             <h3>${escapeHtml(ownerName)} 的卡片</h3>
-            <div class="owner-sub">本月消費 NT$ ${ownerTotal.toLocaleString()} · ${bankNames.length} 家銀行</div>
+            <div class="owner-sub">${bankNames.length} 家銀行</div>
           </div>
           <button class="owner-edit-link" onclick="showPage('settings', document.querySelector('.tab[data-tab=settings]'))">編輯 ›</button>
         </div>
@@ -1215,9 +1336,18 @@
       bankNames.forEach(bankName => {
         const bankCards = banks[bankName];
         const grouped = bankCards.length > 1;
-        let bankTotal = 0;
+        const pairKey = bankCards[0].owner_id + '|' + bankCards[0].bank_id;
+        const statement = latestStatementByPair[pairKey];
+        const hasStatement = !!statement;
 
-        let front = `<div class="flip-front card-tile ${grouped ? 'grouped' : ''}">
+        let sumFromTx = 0;
+        bankCards.forEach(c => { sumFromTx += (totalsByCard[c.id] || 0); });
+        const bankTotal = (hasStatement && statement.total_amount != null) ? Number(statement.total_amount) : sumFromTx;
+        householdTotal += bankTotal;
+
+        const periodLabel = hasStatement ? `${statement.year_month} 帳單` : '還沒有帳單資料';
+
+        let front = `<div class="card-tile ${grouped ? 'grouped' : ''}">
           <div class="card-top">
             <div class="card-id">
               <span class="card-swatch"></span>
@@ -1231,7 +1361,6 @@
           <div class="subcard-list">`;
         bankCards.forEach(c => {
           const spent = totalsByCard[c.id] || 0;
-          bankTotal += spent;
           const limitText = c.credit_limit ? Number(c.credit_limit).toLocaleString() : '—';
           const pct = c.credit_limit ? Math.min(100, (spent / Number(c.credit_limit)) * 100) : 0;
           front += `<div>
@@ -1243,54 +1372,46 @@
           </div>`;
         });
         front += `</div>
-          <div class="grouped-total"><span class="label">本月合計</span><span class="value">NT$ ${bankTotal.toLocaleString()}</span></div>
+          <div class="grouped-total"><span class="label">${escapeHtml(periodLabel)}</span><span class="value">NT$ ${bankTotal.toLocaleString()}</span></div>
+          <div class="card-edit-link">點一下看完整明細 ›</div>
         </div>`;
 
-        // 翻轉背面：這家銀行底下每張卡的真實消費明細
-        let back = `<div class="flip-head"><span>${escapeHtml(bankName)} · 消費明細</span><span class="flip-hint">點一下翻回正面</span></div>`;
-        let hasAny = false;
+        // 完整消費明細：點卡片後彈出的大面板內容
+        let detail = '';
         bankCards.forEach(c => {
           const list = txsByCard[c.id] || [];
-          back += `<div class="flip-sub">${escapeHtml(c.nickname)}</div>`;
+          detail += `<div class="flip-sub">${escapeHtml(c.nickname)}</div>`;
           if (list.length === 0) {
-            back += `<div style="font-size:11px; color:var(--ink-3); padding:4px 0;">這個月還沒有消費</div>`;
+            detail += `<div style="font-size:12px; color:var(--ink-3); padding:6px 0;">${hasStatement ? '這期帳單沒有這張卡的消費' : '還沒有匯入這期帳單，到「設定」匯入 PDF'}</div>`;
           } else {
-            hasAny = true;
             list.forEach(t => {
-              back += `<div class="flip-tx"><span>${escapeHtml(t.store_name)}</span><span class="flip-cat">${escapeHtml(t.card_categories?.name || '未分類')}</span><span class="mono">${Number(t.amount_twd) < 0 ? '+' + Math.abs(t.amount_twd).toLocaleString() : '-' + Number(t.amount_twd).toLocaleString()}</span></div>`;
+              detail += `<div class="flip-tx"><span>${escapeHtml(t.store_name)}</span><span class="flip-cat">${escapeHtml(t.card_categories?.name || '未分類')}</span><span class="mono">${Number(t.amount_twd) < 0 ? '+' + Math.abs(t.amount_twd).toLocaleString() : '-' + Number(t.amount_twd).toLocaleString()}</span></div>`;
             });
           }
         });
 
-        html += `<div class="flip-card" onclick="toggleFlip(this)">
-          <div class="flip-inner">
-            ${front}
-            <div class="flip-back card-tile ${grouped ? 'grouped' : ''}">${back}</div>
-          </div>
-        </div>`;
+        billDetailContents.push({ title: bankName + ' · ' + periodLabel, body: detail });
+        const detailIdx = billDetailContents.length - 1;
+        html += `<div class="card-tile-tap" onclick="openBillModal(${detailIdx})">${front}</div>`;
       });
 
       html += `</div></div>`;
     });
 
+    document.getElementById('hero-total').textContent = householdTotal.toLocaleString();
     wall.innerHTML = html;
-    requestAnimationFrame(syncFlipHeights);
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(syncFlipHeights);
-    }
-    setTimeout(syncFlipHeights, 400); // 保險再校正一次，避免任何時機差造成量錯高度
   }
 
-  function toggleFlip(el){
-    el.classList.toggle('flipped');
+  function openBillModal(index){
+    const content = billDetailContents[index];
+    if (content === undefined) return;
+    document.getElementById('bill-modal-title').textContent = content.title;
+    document.getElementById('bill-modal-body').innerHTML = content.body;
+    document.getElementById('bill-modal-backdrop').classList.add('open');
   }
-  function syncFlipHeights(){
-    document.querySelectorAll('.flip-card').forEach(fc => {
-      const front = fc.querySelector('.flip-front');
-      if (front) fc.style.height = front.offsetHeight + 'px';
-    });
+  function closeBillModal(){
+    document.getElementById('bill-modal-backdrop').classList.remove('open');
   }
-  window.addEventListener('resize', syncFlipHeights);
 
   function escapeHtml(str){
     const div = document.createElement('div');
@@ -1423,7 +1544,7 @@
 
     const { data: txs, error } = await sb
       .from('card_transactions')
-      .select('id, date, store_name, amount_twd, card_cards(nickname, card_banks(name)), card_categories(name)')
+      .select('id, date, store_name, amount_twd, card_cards(nickname, card_banks(name)), card_categories(name), card_statements(year_month)')
       .eq('household_id', currentHousehold.id)
       .gte('date', start)
       .lte('date', end)
@@ -1456,11 +1577,12 @@
         const bankName = t.card_cards?.card_banks?.name || '';
         const cardNick = t.card_cards?.nickname || '';
         const catName = t.card_categories?.name || '未分類';
+        const billTag = t.card_statements?.year_month ? ` · 算入${t.card_statements.year_month}帳單` : '';
         html += `<div class="tx-row">
           <div class="tx-dot"></div>
           <div class="tx-info">
             <div class="tx-store">${escapeHtml(t.store_name)}</div>
-            <div class="tx-meta">${escapeHtml(bankName)} ${escapeHtml(cardNick)} · ${escapeHtml(catName)}</div>
+            <div class="tx-meta">${escapeHtml(bankName)} ${escapeHtml(cardNick)} · ${escapeHtml(catName)}${escapeHtml(billTag)}</div>
           </div>
           <div class="tx-amount mono">${Number(t.amount_twd) < 0 ? '+' + Math.abs(t.amount_twd).toLocaleString() : '-' + Number(t.amount_twd).toLocaleString()}</div>
           <button class="tx-delete" onclick="deleteTransaction('${t.id}')">刪除</button>
@@ -1940,6 +2062,19 @@
     return new Date().getFullYear(); // 找不到就用今年
   }
 
+  // 偵測「這是幾月帳單」（帳單本身認定的月份，不是交易發生的日曆日期），回傳 'YYYY-MM'
+  function detectStatementYearMonth(fullText){
+    let m = fullText.match(/(\d{3})年\s*(\d{1,2})月/); // 民國，例如「115年 08月」
+    if (m) return `${Number(m[1]) + 1911}-${m[2].padStart(2, '0')}`;
+    m = fullText.match(/(20\d{2})年\s*(\d{1,2})月/); // 西元，例如「2026年8月」
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}`;
+    m = fullText.match(/帳單年月[^\d]{0,10}(\d{3})\/(\d{1,2})/); // 例如富邦「帳單年月 115/07」
+    if (m) return `${Number(m[1]) + 1911}-${m[2].padStart(2, '0')}`;
+    m = fullText.match(/帳單年月[^\d]{0,10}(20\d{2})\/(\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2, '0')}`;
+    return null; // 找不到的話，等等 fallback 用「上傳當下的月份」
+  }
+
   const NOISE_KEYWORDS = ['應繳總額', '應繳金額', '循環信用', '循環利率', '年利率', '服務專線', '客服專線', '客服中心',
     '提醒您', '網址', 'http', '第.*頁', '信用額度', '現金回饋計畫', '積點', '公告', '注意事項', '總費用年百分率',
     '約定條款', '信用卡處', '本行將', '謹慎理財', '合計', '小計', '繳款截止', '自動轉帳扣繳', '自動扣繳',
@@ -2030,6 +2165,7 @@
   let pdfCandidates = [];
   let pdfCategoryOptions = [];
   let pdfTargetTotal = null;
+  let pdfBillingYearMonth = null;
 
   // 在 PDF 文字裡找「本期新增/本期應繳」這類標籤旁邊的金額，當作核對用的基準數字
   function findStatementTotalHint(lines){
@@ -2142,9 +2278,10 @@
       const contextYear = detectDocumentYear(fullText);
       const candidates = parseGenericBankLines(lines, contextYear);
       pdfTargetTotal = findStatementTotalHint(lines);
+      pdfBillingYearMonth = detectStatementYearMonth(fullText) || currentYearMonth();
 
       const debugOutput = document.getElementById('pdf-debug-output');
-      debugOutput.value = `【偵測到的年份】${contextYear}\n【原始拆行，共 ${lines.length} 行】\n` +
+      debugOutput.value = `【偵測到的年份】${contextYear}\n【偵測到的帳單月份】${pdfBillingYearMonth}\n【原始拆行，共 ${lines.length} 行】\n` +
         lines.map((l, i) => `${i}: ${l}`).join('\n');
 
       if (candidates.length === 0) {
@@ -2175,6 +2312,7 @@
     const area = document.getElementById('pdf-review-area');
     const list = document.getElementById('pdf-review-list');
     document.getElementById('pdf-review-count').textContent = pdfCandidates.length;
+    document.getElementById('pdf-billing-month').value = pdfBillingYearMonth;
 
     const catOptionsHtml = pdfCategoryOptions.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 
@@ -2209,6 +2347,9 @@
     const importStatusLine = document.getElementById('pdf-import-status-line');
     if (!cardId) { importStatusLine.textContent = '請先選擇要匯入到哪張卡'; return; }
 
+    const billingYearMonth = document.getElementById('pdf-billing-month').value;
+    if (!billingYearMonth) { importStatusLine.textContent = '請確認這份帳單屬於哪個月'; return; }
+
     const rows = [];
     pdfCandidates.forEach((c, i) => {
       const rowEl = document.getElementById('pdf-row-' + i);
@@ -2233,16 +2374,33 @@
     document.getElementById('pdf-import-btn').disabled = true;
     importStatusLine.textContent = '匯入中…';
     try {
+      // 先找出這張卡屬於哪個持卡人/銀行，帳單是掛在「持卡人＋銀行」底下，不是單一張卡
+      const { data: cardInfo, error: cardErr } = await sb.from('card_cards').select('owner_id, bank_id').eq('id', cardId).single();
+      if (cardErr) throw cardErr;
+
+      // 建立或更新這期帳單紀錄（同一個月重複匯入會更新金額，不會變成兩筆）
+      const { data: statement, error: stmtErr } = await sb.from('card_statements').upsert({
+        household_id: currentHousehold.id,
+        owner_id: cardInfo.owner_id,
+        bank_id: cardInfo.bank_id,
+        year_month: billingYearMonth,
+        total_amount: pdfTargetTotal ? pdfTargetTotal.amount : null,
+      }, { onConflict: 'owner_id,bank_id,year_month' }).select('id').single();
+      if (stmtErr) throw stmtErr;
+
+      rows.forEach(r => { r.statement_id = statement.id; });
+
       const { error } = await sb.from('card_transactions').insert(rows);
       if (error) throw error;
       importStatusLine.textContent = '';
-      alert(`已匯入 ${rows.length} 筆消費！`);
+      alert(`已匯入 ${rows.length} 筆消費，歸入「${billingYearMonth} 帳單」！`);
       pdfCandidates = [];
       document.getElementById('pdf-review-area').style.display = 'none';
       document.getElementById('pdf-file-input').value = '';
       await renderTxList();
       await renderCardWall();
       await renderCategoryRank();
+      await renderDueList();
     } catch (e) {
       console.error(e);
       importStatusLine.textContent = '匯入失敗：' + (e.message || JSON.stringify(e));
