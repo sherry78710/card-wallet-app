@@ -614,6 +614,8 @@
             <button class="btn-primary" id="pdf-parse-btn" style="flex:none; width:100%;">開始解析</button>
           </div>
           <button class="card-edit-link" id="pdf-forget-pw-btn" style="margin-top:8px;">清除這家銀行記住的密碼</button>
+          <button class="card-edit-link" id="pdf-debug-toggle-btn" style="margin-top:4px;">顯示原始解析行（除錯用）</button>
+          <textarea id="pdf-debug-output" readonly style="display:none; width:100%; height:200px; margin-top:8px; font-size:10.5px; font-family:'JetBrains Mono', monospace; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink-2);"></textarea>
           <div class="flip-hint" style="text-align:left; margin-top:10px; display:block; line-height:1.6;">
             密碼第一次輸入後會記在這支手機裡，之後同一家銀行不用再打。解析結果會先讓你確認/修改，不會自動存進資料庫——各家銀行格式不同，抓錯的機率不是 0，請務必核對一遍再匯入。
           </div>
@@ -2035,6 +2037,11 @@
     alert(`已清除「${bankName}」記住的密碼，下次匯入會重新問一次。`);
   });
 
+  document.getElementById('pdf-debug-toggle-btn').addEventListener('click', () => {
+    const box = document.getElementById('pdf-debug-output');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  });
+
   document.getElementById('pdf-parse-btn').addEventListener('click', async () => {
     const fileInput = document.getElementById('pdf-file-input');
     const statusLine = document.getElementById('pdf-status-line');
@@ -2076,6 +2083,10 @@
       const contextYear = detectDocumentYear(fullText);
       const candidates = parseGenericBankLines(lines, contextYear);
       pdfTargetTotal = findStatementTotalHint(lines);
+
+      const debugOutput = document.getElementById('pdf-debug-output');
+      debugOutput.value = `【偵測到的年份】${contextYear}\n【原始拆行，共 ${lines.length} 行】\n` +
+        lines.map((l, i) => `${i}: ${l}`).join('\n');
 
       if (candidates.length === 0) {
         statusLine.textContent = '沒有抓到看起來像交易明細的資料，可能是這份帳單格式跟預期差太多，或者這期沒有消費紀錄。';
