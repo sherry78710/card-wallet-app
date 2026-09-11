@@ -98,7 +98,7 @@
   .form-row label{ font-size:12px; font-weight:700; color:var(--ink-2); display:block; margin-bottom:6px; }
   .form-row select, .form-row input{
     width:100%; border:1px solid var(--border); background:var(--bg); border-radius:10px;
-    padding:11px 12px; font-size:14px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1); outline:none;
+    padding:11px 12px; font-size:16px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1); outline:none;
   }
   .form-row select:focus, .form-row input:focus{ border-color:var(--accent); }
   .form-actions{ display:flex; gap:8px; margin-top:16px; }
@@ -149,8 +149,8 @@
   .card-edit-link{ font-size:10.5px; color:var(--ink-3); font-weight:600; margin-top:10px; display:inline-block; cursor:pointer;}
 
   /* ---- Flip card ---- */
-  .flip-card{ flex:0 0 250px; scroll-snap-align:start; perspective:1400px; cursor:pointer; }
-  .flip-inner{ position:relative; width:100%; height:100%; transition:transform .55s cubic-bezier(.4,.2,.2,1); transform-style:preserve-3d; }
+  .flip-card{ flex:0 0 250px; scroll-snap-align:start; perspective:1400px; cursor:pointer; min-height:150px; }
+  .flip-inner{ position:relative; width:100%; transition:transform .55s cubic-bezier(.4,.2,.2,1); transform-style:preserve-3d; }
   .flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
   .flip-front, .flip-back{ backface-visibility:hidden; -webkit-backface-visibility:hidden; }
   .flip-front{ position:relative; }
@@ -281,10 +281,10 @@
   .pdf-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:8px; }
   .pdf-row.excluded{ opacity:.4; }
   .pdf-row input[type=checkbox]{ width:auto; flex-shrink:0; }
-  .pdf-row input[type=date]{ width:118px; flex-shrink:0; font-size:11.5px; padding:6px 7px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
-  .pdf-row input.pdf-store{ flex:1 1 120px; min-width:90px; font-size:12.5px; padding:6px 7px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
-  .pdf-row input.pdf-amount{ width:80px; flex-shrink:0; font-size:12.5px; padding:6px 7px; border:1px solid var(--border); border-radius:7px; background:var(--bg); text-align:right; }
-  .pdf-row select.pdf-cat{ flex:0 0 92px; font-size:11px; padding:6px 4px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
+  .pdf-row input[type=date]{ width:128px; flex-shrink:0; font-size:16px; padding:6px 4px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
+  .pdf-row input.pdf-store{ flex:1 1 120px; min-width:90px; font-size:16px; padding:6px 7px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
+  .pdf-row input.pdf-amount{ width:90px; flex-shrink:0; font-size:16px; padding:6px 4px; border:1px solid var(--border); border-radius:7px; background:var(--bg); text-align:right; }
+  .pdf-row select.pdf-cat{ flex:0 0 100px; font-size:16px; padding:6px 2px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
   .pdf-row .pdf-flag{ font-size:9.5px; color:var(--warn); font-weight:700; flex-basis:100%; }
 
   .pdf-total-check{
@@ -349,7 +349,7 @@
   .manage-row .delete-btn{ color:var(--danger); }
   .manage-row input.mini-date{
     border:1px solid var(--border); background:var(--bg); border-radius:8px; padding:7px 9px;
-    font-size:12.5px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1);
+    font-size:16px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1);
   }
 </style>
 </head>
@@ -500,6 +500,12 @@
               <label for="fx-amount">金額</label>
               <input id="fx-amount" type="number" inputmode="numeric" placeholder="例如：25000">
             </div>
+            <div class="form-row">
+              <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                <input type="checkbox" id="fx-recurring" style="width:auto;" checked>
+                每月固定，從這個月開始自動延續（不用每月手動新增）
+              </label>
+            </div>
             <div class="status-line error" id="fx-form-status-line"></div>
             <div class="form-actions">
               <button class="btn-ghost" id="cancel-fx-form-btn">取消</button>
@@ -544,16 +550,6 @@
     <!-- 設定 -->
     <div class="page" data-page="settings" style="display:none;">
       <div class="section" style="margin-top:8px;">
-        <div class="section-head"><h2>同步碼</h2></div>
-        <div class="form-card open" style="text-align:center; padding:22px;">
-          <div class="code-pill" id="code-pill" style="margin:0 0 14px;">SYNC · ------</div>
-          <div class="form-actions" style="margin-top:4px;">
-            <button class="btn-ghost" id="logout-btn" style="flex:1;">切換同步碼</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
         <div class="section-head">
           <h2>卡片管理</h2>
           <button id="toggle-form-btn">+ 新增卡片</button>
@@ -615,7 +611,7 @@
           </div>
           <button class="card-edit-link" id="pdf-forget-pw-btn" style="margin-top:8px;">清除這家銀行記住的密碼</button>
           <button class="card-edit-link" id="pdf-debug-toggle-btn" style="margin-top:4px;">顯示原始解析行（除錯用）</button>
-          <textarea id="pdf-debug-output" readonly style="display:none; width:100%; height:200px; margin-top:8px; font-size:10.5px; font-family:'JetBrains Mono', monospace; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink-2);"></textarea>
+          <textarea id="pdf-debug-output" readonly style="display:none; width:100%; height:200px; margin-top:8px; font-size:12px; font-family:'JetBrains Mono', monospace; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink-2);"></textarea>
           <div class="flip-hint" style="text-align:left; margin-top:10px; display:block; line-height:1.6;">
             密碼第一次輸入後會記在這支手機裡，之後同一家銀行不用再打。解析結果會先讓你確認/修改，不會自動存進資料庫——各家銀行格式不同，抓錯的機率不是 0，請務必核對一遍再匯入。
           </div>
@@ -632,6 +628,19 @@
             <button class="btn-primary" id="pdf-import-btn">確認匯入勾選項目</button>
           </div>
           <div class="status-line error" id="pdf-import-status-line"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head" style="cursor:pointer;" onclick="toggleSyncSection()">
+          <h2>同步碼</h2>
+          <span class="card-edit-link" id="sync-toggle-icon">展開 ›</span>
+        </div>
+        <div class="form-card" id="sync-section" style="text-align:center; padding:22px;">
+          <div class="code-pill" id="code-pill" style="margin:0 0 14px;">SYNC · ------</div>
+          <div class="form-actions" style="margin-top:4px;">
+            <button class="btn-ghost" id="logout-btn" style="flex:1;">切換同步碼</button>
+          </div>
         </div>
       </div>
     </div>
@@ -751,6 +760,7 @@
 
   // ---- 新增／編輯卡片表單 ----
   const NEW_OWNER_VALUE = '__new_owner__';
+  const NEW_BANK_VALUE = '__new_bank__';
   const ownerSelect = document.getElementById('f-owner');
   const bankSelect = document.getElementById('f-bank');
   const toggleFormBtn = document.getElementById('toggle-form-btn');
@@ -797,6 +807,9 @@
       opt.value = b.id; opt.textContent = b.name;
       bankSelect.appendChild(opt);
     });
+    const newBankOpt = document.createElement('option');
+    newBankOpt.value = NEW_BANK_VALUE; newBankOpt.textContent = '+ 新增銀行…';
+    bankSelect.appendChild(newBankOpt);
   }
 
   toggleFormBtn.addEventListener('click', () => {
@@ -820,6 +833,20 @@
     if (error) { setFormStatus('新增持卡人失敗：' + error.message); ownerSelect.selectedIndex = 0; return; }
     await loadFormOptions();
     ownerSelect.value = data.id;
+  });
+
+  bankSelect.addEventListener('change', async () => {
+    if (bankSelect.value !== NEW_BANK_VALUE) return;
+    const name = prompt('新增銀行的名稱（例如：中國信託）');
+    if (!name || !name.trim()) { bankSelect.selectedIndex = 0; return; }
+    const { data, error } = await sb
+      .from('card_banks')
+      .insert({ name: name.trim() })
+      .select('id, name')
+      .single();
+    if (error) { setFormStatus('新增銀行失敗：' + error.message); bankSelect.selectedIndex = 0; return; }
+    await loadFormOptions();
+    bankSelect.value = data.id;
   });
 
   async function editCard(id){
@@ -862,7 +889,7 @@
     const cobrand = document.getElementById('f-cobrand').value.trim();
 
     if (!ownerId || ownerId === NEW_OWNER_VALUE) { setFormStatus('請選擇持卡人'); return; }
-    if (!bankId) { setFormStatus('請選擇銀行'); return; }
+    if (!bankId || bankId === NEW_BANK_VALUE) { setFormStatus('請選擇銀行'); return; }
     if (!nickname) { setFormStatus('請輸入卡片名稱'); return; }
 
     saveCardBtn.disabled = true;
@@ -1230,7 +1257,7 @@
           } else {
             hasAny = true;
             list.forEach(t => {
-              back += `<div class="flip-tx"><span>${escapeHtml(t.store_name)}</span><span class="flip-cat">${escapeHtml(t.card_categories?.name || '未分類')}</span><span class="mono">-${Number(t.amount_twd).toLocaleString()}</span></div>`;
+              back += `<div class="flip-tx"><span>${escapeHtml(t.store_name)}</span><span class="flip-cat">${escapeHtml(t.card_categories?.name || '未分類')}</span><span class="mono">${Number(t.amount_twd) < 0 ? '+' + Math.abs(t.amount_twd).toLocaleString() : '-' + Number(t.amount_twd).toLocaleString()}</span></div>`;
             });
           }
         });
@@ -1248,6 +1275,10 @@
 
     wall.innerHTML = html;
     requestAnimationFrame(syncFlipHeights);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncFlipHeights);
+    }
+    setTimeout(syncFlipHeights, 400); // 保險再校正一次，避免任何時機差造成量錯高度
   }
 
   function toggleFlip(el){
@@ -1431,7 +1462,7 @@
             <div class="tx-store">${escapeHtml(t.store_name)}</div>
             <div class="tx-meta">${escapeHtml(bankName)} ${escapeHtml(cardNick)} · ${escapeHtml(catName)}</div>
           </div>
-          <div class="tx-amount mono">-${Number(t.amount_twd).toLocaleString()}</div>
+          <div class="tx-amount mono">${Number(t.amount_twd) < 0 ? '+' + Math.abs(t.amount_twd).toLocaleString() : '-' + Number(t.amount_twd).toLocaleString()}</div>
           <button class="tx-delete" onclick="deleteTransaction('${t.id}')">刪除</button>
         </div>`;
       });
@@ -1441,12 +1472,23 @@
   }
 
   // ---- 本月總支出合計（刷卡 + 固定支出） ----
+  // 撈出「這個月該算的固定支出」：本月手動新增的一次性項目 ＋ 從某月開始就一直套用的固定項目
+  async function fetchFxForMonth(ym){
+    const { data, error } = await sb
+      .from('card_fixed_expenses')
+      .select('id, item_name, amount, is_recurring, year_month')
+      .eq('household_id', currentHousehold.id)
+      .or(`and(is_recurring.eq.false,year_month.eq.${ym}),and(is_recurring.eq.true,year_month.lte.${ym})`)
+      .order('created_at');
+    return { data: data || [], error };
+  }
+
   async function updateMonthGrandTotal(){
     const ym = selectedYearMonth();
     const { start, end } = getMonthRange(ym);
     const [{ data: txs }, { data: fxs }] = await Promise.all([
       sb.from('card_transactions').select('amount_twd').eq('household_id', currentHousehold.id).gte('date', start).lte('date', end),
-      sb.from('card_fixed_expenses').select('amount').eq('household_id', currentHousehold.id).eq('year_month', ym),
+      fetchFxForMonth(ym),
     ]);
     const txTotal = (txs || []).reduce((s, t) => s + Number(t.amount_twd), 0);
     const fxTotal = (fxs || []).reduce((s, f) => s + Number(f.amount), 0);
@@ -1473,6 +1515,7 @@
   saveFxBtn.addEventListener('click', async () => {
     const name = document.getElementById('fx-name').value.trim();
     const amountRaw = document.getElementById('fx-amount').value;
+    const isRecurring = document.getElementById('fx-recurring').checked;
     if (!name) { fxFormStatusLine.textContent = '請輸入項目名稱'; return; }
     if (!amountRaw || Number(amountRaw) <= 0) { fxFormStatusLine.textContent = '請輸入金額'; return; }
 
@@ -1484,10 +1527,12 @@
         item_name: name,
         amount: Number(amountRaw),
         year_month: selectedYearMonth(),
+        is_recurring: isRecurring,
       });
       if (error) throw error;
       document.getElementById('fx-name').value = '';
       document.getElementById('fx-amount').value = '';
+      document.getElementById('fx-recurring').checked = true;
       addFxForm.classList.remove('open');
       fxFormStatusLine.textContent = '';
       await renderFxList();
@@ -1500,7 +1545,7 @@
   });
 
   async function deleteFx(id){
-    if (!confirm('確定要刪除這筆固定支出嗎？')) return;
+    if (!confirm('確定要刪除這筆固定支出嗎？如果是每月固定項目，之後每個月都不會再自動出現。')) return;
     const { error } = await sb.from('card_fixed_expenses').delete().eq('id', id);
     if (error) { alert('刪除失敗：' + error.message); return; }
     await renderFxList();
@@ -1510,18 +1555,13 @@
   async function renderFxList(){
     const el = document.getElementById('fx-list');
     const ym = selectedYearMonth();
-    const { data: fxs, error } = await sb
-      .from('card_fixed_expenses')
-      .select('id, item_name, amount')
-      .eq('household_id', currentHousehold.id)
-      .eq('year_month', ym)
-      .order('created_at');
+    const { data: fxs, error } = await fetchFxForMonth(ym);
     if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
     if (!fxs || fxs.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">這個月還沒有固定支出。</div>'; return; }
     el.innerHTML = fxs.map(f => `
       <div class="tx-row">
         <div class="tx-dot" style="background:var(--ink-3);"></div>
-        <div class="tx-info"><div class="tx-store">${escapeHtml(f.item_name)}</div><div class="tx-meta">每月固定 · 手動輸入</div></div>
+        <div class="tx-info"><div class="tx-store">${escapeHtml(f.item_name)}</div><div class="tx-meta">${f.is_recurring ? '每月固定 · 自動延續' : '單次項目 · 手動輸入'}</div></div>
         <div class="tx-amount mono">-${Number(f.amount).toLocaleString()}</div>
         <button class="tx-delete" onclick="deleteFx('${f.id}')">刪除</button>
       </div>`).join('');
@@ -1706,9 +1746,9 @@
         .eq('household_id', currentHousehold.id)
         .gte('date', start).lte('date', end),
       sb.from('card_fixed_expenses')
-        .select('amount, year_month')
+        .select('amount, year_month, is_recurring')
         .eq('household_id', currentHousehold.id)
-        .gte('year_month', year + '-01').lte('year_month', year + '-12'),
+        .or(`and(is_recurring.eq.false,year_month.gte.${year}-01,year_month.lte.${year}-12),and(is_recurring.eq.true,year_month.lte.${year}-12)`),
     ]);
 
     if (txErr || fxErr) {
@@ -1717,14 +1757,22 @@
       return;
     }
 
-    const txTotal = (txs || []).reduce((s, t) => s + Number(t.amount_twd), 0);
-    const fxTotal = (fxs || []).reduce((s, f) => s + Number(f.amount), 0);
-    document.getElementById('year-total-value').textContent = (txTotal + fxTotal).toLocaleString();
-
     // ---- 每月長條圖（刷卡＋固定支出）----
+    // 固定支出：一次性項目只算它自己那個月；每月固定的項目，從開始那個月起，之後每個月都要重複計入
     const monthlyTotals = new Array(12).fill(0);
     (txs || []).forEach(t => { monthlyTotals[Number(t.date.slice(5, 7)) - 1] += Number(t.amount_twd); });
-    (fxs || []).forEach(f => { monthlyTotals[Number(f.year_month.slice(5, 7)) - 1] += Number(f.amount); });
+    for (let m = 1; m <= 12; m++) {
+      const ym = year + '-' + String(m).padStart(2, '0');
+      (fxs || []).forEach(f => {
+        if (!f.is_recurring && f.year_month === ym) monthlyTotals[m - 1] += Number(f.amount);
+        if (f.is_recurring && f.year_month <= ym) monthlyTotals[m - 1] += Number(f.amount);
+      });
+    }
+
+    const txTotal = (txs || []).reduce((s, t) => s + Number(t.amount_twd), 0);
+    const fxTotal = monthlyTotals.reduce((s, v) => s + v, 0) - txTotal;
+    document.getElementById('year-total-value').textContent = (txTotal + fxTotal).toLocaleString();
+
     const maxMonth = Math.max(1, ...monthlyTotals);
     const nowMonth = new Date().getMonth();
     const chartEl = document.getElementById('year-bar-chart');
@@ -1867,28 +1915,16 @@
 
   // 表格儲存格文字換行時，PDF 會被拆成兩行（例如「連加*LINEPAY*HAO SHI YUAN」+「MTAIPEI」）。
   // 把「沒有日期也沒有金額」的接續行併回前一行，還原成完整的一筆交易。
-  function mergeWrappedLines(lines){
-    const dateToken = /^(\d{2,4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2})$/;
-    const amountToken = /^-?[\d,]+(\.\d+)?$/;
-    const hasDate = l => l.split(' ').some(t => dateToken.test(t));
-    const hasAmount = l => l.split(' ').some(t => amountToken.test(t) && !dateToken.test(t));
-
-    const merged = [];
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i];
-      // 這一行有日期、但還沒有金額 → 很可能後面被截斷了，往下併行直到湊齊金額或遇到下一筆的日期
-      if (hasDate(line) && !hasAmount(line)) {
-        let j = i + 1;
-        while (j < lines.length && !hasDate(lines[j]) && lines[j].length < 60) {
-          line += ' ' + lines[j];
-          if (hasAmount(line)) { j++; break; }
-          j++;
-        }
-        i = j - 1;
-      }
-      merged.push(line);
-    }
-    return merged;
+  // 判斷一行是不是「純粹的店名接續文字」（沒有日期、沒有金額、不是雜訊公告）
+  function isBareContinuation(line, dateToken, amountToken){
+    if (!line) return false;
+    if (line.length === 0 || line.length > 60) return false;
+    const tokens = line.split(' ').filter(Boolean);
+    if (tokens.length === 0) return false;
+    if (tokens.some(t => dateToken.test(t))) return false;
+    if (tokens.some(t => amountToken.test(t) && !dateToken.test(t))) return false;
+    if (NOISE_KEYWORDS.some(k => new RegExp(k).test(line))) return false;
+    return true;
   }
 
   // 從整份 PDF 文字裡找「年份」上下文，讓沒有寫年份的 MM/DD 日期知道該對應哪一年
@@ -1926,15 +1962,15 @@
     return null;
   }
 
-  function parseGenericBankLines(rawLines, contextYear){
+  function parseGenericBankLines(lines, contextYear){
     const results = [];
     const dateToken = /^(\d{2,4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2})$/;
     const amountToken = /^-?[\d,]+(\.\d+)?$/;
-    const lines = mergeWrappedLines(rawLines);
 
-    lines.forEach(line => {
+    lines.forEach((line, idx) => {
       if (line.length < 6 || line.length > 160) return;
-      if (NOISE_KEYWORDS.some(k => new RegExp(k).test(line))) return;
+      const noiseWindow = (lines[idx - 1] || '') + ' ' + line + ' ' + (lines[idx + 1] || '');
+      if (NOISE_KEYWORDS.some(k => new RegExp(k).test(noiseWindow))) return;
 
       const tokens = line.split(' ').filter(Boolean);
       const dateIdxs = tokens.map((t, i) => dateToken.test(t) ? i : -1).filter(i => i >= 0);
@@ -1948,7 +1984,7 @@
       if (amountIdx === -1) return;
 
       const amount = Number(tokens[amountIdx].replace(/,/g, ''));
-      if (!amount || amount <= 0) return; // 忽略 0 元或負數（多為退款/回饋，先不自動帶入）
+      if (!amount) return; // 只排除 0 元或無法辨識的數字，正負都保留（退款/沖正才會跟 PDF 總額對得起來）
 
       const firstDateIdx = dateIdxs[0];
       const iso = rocOrGregorianToISO(tokens[firstDateIdx], contextYear);
@@ -1964,7 +2000,18 @@
         if (maybeNum && /^[\d,.]+$/.test(maybeNum)) foreignAmount = Number(maybeNum.replace(/,/g, ''));
         descTokens.splice(curIdx, foreignAmount ? 2 : 1);
       }
-      const store = descTokens.join(' ').replace(/^\d{4}\s*/, '').trim(); // 去掉卡號末四碼開頭
+      let store = descTokens.join(' ').replace(/^\d{4}\s*/, '').trim(); // 去掉卡號末四碼開頭
+
+      // 店名文字在「日期＋金額」這一行本身是空的：代表店名被拆到前後兩行去了（表格儲存格換行）
+      // 前一行放店名前半、後一行放店名接續（例如 MTAIPEI），這裡把它們借回來組成完整店名
+      if (!store) {
+        const prev = lines[idx - 1];
+        const next = lines[idx + 1];
+        const parts = [];
+        if (isBareContinuation(prev, dateToken, amountToken)) parts.push(prev);
+        if (isBareContinuation(next, dateToken, amountToken)) parts.push(next);
+        store = parts.join(' ').trim();
+      }
       if (!store) return;
 
       results.push({ date: iso, store, amount, currency, foreignAmount });
@@ -1986,6 +2033,18 @@
 
   // 在 PDF 文字裡找「本期新增/本期應繳」這類標籤旁邊的金額，當作核對用的基準數字
   function findStatementTotalHint(lines){
+    // 特殊格式（例如富邦）：一整排標題「前期應繳總額 - 繳(退)金額 - 本期調整金額 + 本期新增 = 本期應繳總額...」
+    // 對應的數字在「下一行」按同樣順序排列，不是緊接在文字後面
+    for (let i = 0; i < lines.length - 1; i++) {
+      if (lines[i].includes('前期應繳總額') && lines[i].includes('本期新增') && lines[i].includes('本期應繳總額')) {
+        const nums = lines[i + 1].match(/-?[\d,]+(?:\.\d+)?/g);
+        // 順序固定：前期應繳總額、繳退金額、本期調整金額、本期新增、本期應繳總額...
+        if (nums && nums.length >= 4) {
+          return { label: '本期新增', amount: Number(nums[3].replace(/,/g, '')) };
+        }
+      }
+    }
+
     const labels = ['本期新增(含調整)款項', '本期新增(含調整)金額', '本期新增金額', '本期新增款項',
       '本期新增(含調整)', '本期新增', '本期消費金額合計', '本期應繳總額', '本期應繳金額', '本期應繳總金額', '本期金額合計'];
     for (const label of labels) {
@@ -2127,6 +2186,7 @@
         <input type="number" class="pdf-amount" value="${c.amount}" oninput="updatePdfTotalCheck();">
         <select class="pdf-cat">${catOptionsHtml}</select>
         ${c.currency ? `<div class="pdf-flag">偵測到海外消費：${c.currency} ${c.foreignAmount ?? ''}（分類可自行調整，幣別已記錄）</div>` : ''}
+        ${c.amount < 0 ? `<div class="pdf-flag">這筆金額是負數，看起來像退款／沖正，確認沒問題再匯入</div>` : ''}
       </div>`).join('');
 
     // 把偵測到的外幣資訊存回候選資料，供匯入時使用
@@ -2192,6 +2252,13 @@
   });
 
   let currentHousehold = null;
+
+  function toggleSyncSection(){
+    const box = document.getElementById('sync-section');
+    const icon = document.getElementById('sync-toggle-icon');
+    const isOpen = box.classList.toggle('open');
+    icon.textContent = isOpen ? '收合 ‹' : '展開 ›';
+  }
 
   function showPage(name, el){
     document.querySelectorAll('.page').forEach(p => {
