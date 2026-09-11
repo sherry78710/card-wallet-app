@@ -150,6 +150,69 @@
   .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--ink-3); font-size:10.5px; font-weight:700; cursor:pointer; }
   .tab.active{ color:var(--accent); }
   .tab svg{ width:21px; height:21px; }
+
+  /* ---- Transactions ---- */
+  .grand-total{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--surface-alt); border-radius:14px; padding:14px 16px; margin-bottom:16px;
+  }
+  .grand-label{ font-size:12.5px; font-weight:800; color:var(--ink-1); }
+  .grand-value{ font-size:17px; font-weight:800; color:var(--ink-1); }
+  .tx-date-head{ font-size:11.5px; color:var(--ink-3); font-weight:700; margin:16px 0 8px; letter-spacing:.03em; }
+  .tx-date-head:first-child{ margin-top:0; }
+  .tx-row{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px dashed var(--border); }
+  .tx-row:last-child{ border-bottom:none; }
+  .tx-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; background:var(--accent); }
+  .tx-info{ flex:1; min-width:0; }
+  .tx-store{ font-size:14px; font-weight:700; color:var(--ink-1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tx-meta{ font-size:11px; color:var(--ink-2); margin-top:2px; font-weight:500;}
+  .tx-amount{ font-size:14px; font-weight:700; color:var(--ink-1); flex-shrink:0; }
+  .tx-delete{ font-size:11px; color:var(--danger); font-weight:700; background:none; border:none; cursor:pointer; padding:4px 0 4px 6px; flex-shrink:0; }
+
+  /* ---- Due list (payment reminders) ---- */
+  .due-row{ display:flex; align-items:center; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin-bottom:8px; cursor:pointer; transition:opacity .2s, background .2s; }
+  .due-row.paid{ background:var(--surface-alt); opacity:.6; }
+  .check-circle{
+    width:21px; height:21px; border-radius:50%; flex-shrink:0;
+    border:2px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .check-circle::after{
+    content:''; width:9px; height:9px; border-left:2px solid #fff; border-bottom:2px solid #fff;
+    transform:rotate(-45deg) translate(1px,-1px); opacity:0;
+  }
+  .due-row.paid .check-circle{ background:var(--safe); border-color:var(--safe); }
+  .due-row.paid .check-circle::after{ opacity:1; }
+  .due-row .info{ flex:1; }
+  .due-row .card-label{ font-size:14px; font-weight:700; color:var(--ink-1); }
+  .due-row.paid .card-label{ text-decoration:line-through; color:var(--ink-3); }
+  .due-row .due-date{ font-size:11.5px; color:var(--ink-2); margin-top:2px; font-weight:500; }
+  .due-row .days{ font-size:13px; font-weight:800; text-align:right; color:var(--ink-2); }
+  .due-row.paid .days{ color:var(--safe); }
+
+  /* ---- Ranking rows (category / merchant) ---- */
+  .rank-row{ display:flex; align-items:center; gap:12px; padding:9px 0; }
+  .rank-swatch{ width:10px; height:10px; border-radius:3px; flex-shrink:0; background:var(--accent); }
+  .rank-info{ flex:1; }
+  .rank-name{ font-size:13px; font-weight:700; color:var(--ink-1); }
+  .rank-track{ height:5px; background:var(--surface-alt); border-radius:4px; margin-top:6px; overflow:hidden; }
+  .rank-fill{ height:100%; border-radius:4px; background:var(--accent); }
+  .rank-amount{ font-size:13px; font-weight:700; color:var(--ink-1); text-align:right; min-width:60px; }
+
+  /* ---- Management list rows (settings) ---- */
+  .manage-row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px dashed var(--border); }
+  .manage-row:last-child{ border-bottom:none; }
+  .manage-row .info{ flex:1; min-width:0; }
+  .manage-row .title{ font-size:13.5px; font-weight:700; color:var(--ink-1); }
+  .manage-row .sub{ font-size:11px; color:var(--ink-2); margin-top:2px; }
+  .manage-row .actions{ display:flex; gap:8px; flex-shrink:0; }
+  .manage-row .actions button{ font-size:11.5px; font-weight:700; background:none; border:none; cursor:pointer; padding:4px 2px; }
+  .manage-row .edit-btn{ color:var(--accent); }
+  .manage-row .delete-btn{ color:var(--danger); }
+  .manage-row input.mini-date{
+    border:1px solid var(--border); background:var(--bg); border-radius:8px; padding:7px 9px;
+    font-size:12.5px; font-family:'Noto Sans TC', sans-serif; color:var(--ink-1);
+  }
 </style>
 </head>
 <body>
@@ -196,8 +259,119 @@
       </div>
 
       <div class="section">
+        <div class="section-head"><h2>近期繳款</h2></div>
+        <div id="due-list"></div>
+      </div>
+
+      <div class="section">
         <div class="section-head">
           <h2>我的卡片</h2>
+          <button onclick="showPage('settings', document.querySelector('.tab[data-tab=settings]'))">管理卡片 ›</button>
+        </div>
+        <div id="card-wall"></div>
+      </div>
+    </div>
+
+    <!-- 明細 -->
+    <div class="page" data-page="details" style="display:none;">
+      <div class="section" style="margin-top:8px;">
+        <div class="grand-total" id="month-total-box">
+          <div><span class="grand-label" id="month-label">本月消費</span><span class="grand-cap" id="month-caption" style="display:block; font-size:11px; color:var(--ink-2); margin-top:2px;"></span></div>
+          <div class="grand-value mono" id="month-total-value">NT$ 0</div>
+        </div>
+
+        <div class="section-head">
+          <h2>消費明細</h2>
+          <button id="toggle-tx-form-btn">+ 新增消費</button>
+        </div>
+
+        <div class="form-card" id="add-tx-form">
+          <div class="form-row">
+            <label for="t-card">卡片</label>
+            <select id="t-card"></select>
+          </div>
+          <div class="form-row">
+            <label for="t-date">消費日期</label>
+            <input id="t-date" type="date">
+          </div>
+          <div class="form-row">
+            <label for="t-store">店家</label>
+            <input id="t-store" type="text" placeholder="例如：全聯福利中心">
+          </div>
+          <div class="form-row">
+            <label for="t-amount">金額（台幣）</label>
+            <input id="t-amount" type="number" inputmode="numeric" placeholder="例如：680">
+          </div>
+          <div class="form-row">
+            <label for="t-category">類別</label>
+            <select id="t-category"></select>
+          </div>
+          <div class="form-row">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="t-overseas-toggle" style="width:auto;">
+              這筆是海外消費（有外幣金額）
+            </label>
+          </div>
+          <div id="overseas-fields" style="display:none;">
+            <div class="form-row">
+              <label for="t-currency">幣別</label>
+              <input id="t-currency" type="text" placeholder="例如：KRW、JPY、USD">
+            </div>
+            <div class="form-row">
+              <label for="t-foreign-amount">外幣金額</label>
+              <input id="t-foreign-amount" type="number" inputmode="decimal" placeholder="例如：22600">
+            </div>
+          </div>
+          <div class="status-line error" id="tx-form-status-line"></div>
+          <div class="form-actions">
+            <button class="btn-ghost" id="cancel-tx-form-btn">取消</button>
+            <button class="btn-primary" id="save-tx-btn">儲存消費</button>
+          </div>
+        </div>
+
+        <div id="tx-list"></div>
+
+        <div class="section-head" style="margin-top:22px;">
+          <h2 style="font-size:14px;">固定支出</h2>
+          <button id="toggle-fx-form-btn">+ 新增</button>
+        </div>
+        <div class="form-card" id="add-fx-form">
+          <div class="form-row">
+            <label for="fx-name">項目名稱</label>
+            <input id="fx-name" type="text" placeholder="例如：房租、水電、保費">
+          </div>
+          <div class="form-row">
+            <label for="fx-amount">金額</label>
+            <input id="fx-amount" type="number" inputmode="numeric" placeholder="例如：25000">
+          </div>
+          <div class="status-line error" id="fx-form-status-line"></div>
+          <div class="form-actions">
+            <button class="btn-ghost" id="cancel-fx-form-btn">取消</button>
+            <button class="btn-primary" id="save-fx-btn">儲存</button>
+          </div>
+        </div>
+        <div id="fx-list"></div>
+
+        <div class="section-head" style="margin-top:22px;"><h2 style="font-size:14px;">消費類別佔比</h2></div>
+        <div id="category-rank"></div>
+      </div>
+    </div>
+
+    <!-- 設定 -->
+    <div class="page" data-page="settings" style="display:none;">
+      <div class="section" style="margin-top:8px;">
+        <div class="section-head"><h2>同步碼</h2></div>
+        <div class="form-card open" style="text-align:center; padding:22px;">
+          <div class="code-pill" id="code-pill" style="margin:0 0 14px;">SYNC · ------</div>
+          <div class="form-actions" style="margin-top:4px;">
+            <button class="btn-ghost" id="logout-btn" style="flex:1;">切換同步碼</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>卡片管理</h2>
           <button id="toggle-form-btn">+ 新增卡片</button>
         </div>
 
@@ -229,30 +403,12 @@
           </div>
         </div>
 
-        <div id="card-wall"></div>
+        <div id="card-manage-list"></div>
       </div>
-    </div>
 
-    <!-- 明細（消費明細功能尚未開放） -->
-    <div class="page" data-page="details" style="display:none;">
-      <div class="section" style="margin-top:8px;">
-        <div style="text-align:center; padding:60px 20px; color:var(--ink-3);">
-          <div style="font-size:13px; font-weight:600;">消費明細尚未開放</div>
-          <div style="font-size:12px; margin-top:6px; line-height:1.6;">等 PDF 匯入與手動記帳功能做好後<br>這裡會顯示每月消費清單與統計</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 設定 -->
-    <div class="page" data-page="settings" style="display:none;">
-      <div class="section" style="margin-top:8px;">
-        <div class="section-head"><h2>同步碼</h2></div>
-        <div class="form-card open" style="text-align:center; padding:22px;">
-          <div class="code-pill" id="code-pill" style="margin:0 0 14px;">SYNC · ------</div>
-          <div class="form-actions" style="margin-top:4px;">
-            <button class="btn-ghost" id="logout-btn" style="flex:1;">切換同步碼</button>
-          </div>
-        </div>
+      <div class="section">
+        <div class="section-head"><h2>繳款日設定</h2></div>
+        <div id="statement-manage-list"></div>
       </div>
     </div>
   </div>
@@ -366,9 +522,16 @@
 
     await loadFormOptions();
     await renderCardWall();
+    await loadTxFormOptions();
+    await renderTxList();
+    await renderDueList();
+    await renderCardManageList();
+    await renderStatementManageList();
+    await renderFxList();
+    await renderCategoryRank();
   }
 
-  // ---- 新增卡片表單 ----
+  // ---- 新增／編輯卡片表單 ----
   const NEW_OWNER_VALUE = '__new_owner__';
   const ownerSelect = document.getElementById('f-owner');
   const bankSelect = document.getElementById('f-bank');
@@ -377,9 +540,19 @@
   const saveCardBtn = document.getElementById('save-card-btn');
   const addCardForm = document.getElementById('add-card-form');
   const formStatusLine = document.getElementById('form-status-line');
+  let editingCardId = null;
 
   function setFormStatus(msg){
     formStatusLine.textContent = msg || '';
+  }
+
+  function resetCardForm(){
+    editingCardId = null;
+    saveCardBtn.textContent = '儲存卡片';
+    document.getElementById('f-nickname').value = '';
+    document.getElementById('f-limit').value = '';
+    document.getElementById('f-cobrand').value = '';
+    setFormStatus('');
   }
 
   async function loadFormOptions(){
@@ -409,12 +582,12 @@
   }
 
   toggleFormBtn.addEventListener('click', () => {
+    resetCardForm();
     addCardForm.classList.toggle('open');
-    setFormStatus('');
   });
   cancelFormBtn.addEventListener('click', () => {
     addCardForm.classList.remove('open');
-    setFormStatus('');
+    resetCardForm();
   });
 
   ownerSelect.addEventListener('change', async () => {
@@ -431,6 +604,39 @@
     ownerSelect.value = data.id;
   });
 
+  async function editCard(id){
+    const { data: c, error } = await sb.from('card_cards').select('*').eq('id', id).single();
+    if (error) { alert('讀取卡片失敗：' + error.message); return; }
+    await loadFormOptions();
+    editingCardId = id;
+    ownerSelect.value = c.owner_id;
+    bankSelect.value = c.bank_id;
+    document.getElementById('f-nickname').value = c.nickname || '';
+    document.getElementById('f-limit').value = c.credit_limit || '';
+    document.getElementById('f-cobrand').value = c.co_brand || '';
+    saveCardBtn.textContent = '儲存修改';
+    setFormStatus('');
+    addCardForm.classList.add('open');
+    addCardForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  async function deleteCard(id){
+    if (!confirm('確定要刪除這張卡片嗎？這張卡底下的消費明細也會一併刪除。')) return;
+    const { error } = await sb.from('card_cards').delete().eq('id', id);
+    if (error) { alert('刪除失敗：' + error.message); return; }
+    await refreshAllCardDependents();
+  }
+
+  async function refreshAllCardDependents(){
+    await renderCardWall();
+    await renderCardManageList();
+    await renderStatementManageList();
+    await renderDueList();
+    await loadTxFormOptions();
+    const { count } = await sb.from('card_cards').select('id', { count: 'exact', head: true }).eq('household_id', currentHousehold.id);
+    document.getElementById('stat-cards').textContent = count ?? '0';
+  }
+
   saveCardBtn.addEventListener('click', async () => {
     const ownerId = ownerSelect.value;
     const bankId = bankSelect.value;
@@ -445,24 +651,25 @@
     saveCardBtn.disabled = true;
     setFormStatus('儲存中…');
     try {
-      const { error } = await sb.from('card_cards').insert({
+      const payload = {
         household_id: currentHousehold.id,
         owner_id: ownerId,
         bank_id: bankId,
         nickname: nickname,
         credit_limit: limitRaw ? Number(limitRaw) : null,
         co_brand: cobrand || null,
-      });
+      };
+      let error;
+      if (editingCardId) {
+        ({ error } = await sb.from('card_cards').update(payload).eq('id', editingCardId));
+      } else {
+        ({ error } = await sb.from('card_cards').insert(payload));
+      }
       if (error) throw error;
 
-      document.getElementById('f-nickname').value = '';
-      document.getElementById('f-limit').value = '';
-      document.getElementById('f-cobrand').value = '';
       addCardForm.classList.remove('open');
-      setFormStatus('');
-      await renderCardWall();
-      const cardCountEl = document.getElementById('stat-cards');
-      cardCountEl.textContent = (Number(cardCountEl.textContent) || 0) + 1;
+      resetCardForm();
+      await refreshAllCardDependents();
     } catch (e) {
       console.error(e);
       setFormStatus('儲存失敗：' + (e.message || JSON.stringify(e)));
@@ -471,7 +678,145 @@
     }
   });
 
+  // ---- 設定：卡片管理清單 ----
+  async function renderCardManageList(){
+    const el = document.getElementById('card-manage-list');
+    if (!el) return;
+    el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">讀取中…</div>';
+    const { data: cards, error } = await sb
+      .from('card_cards')
+      .select('id, nickname, credit_limit, co_brand, card_owners(name), card_banks(name)')
+      .eq('household_id', currentHousehold.id)
+      .order('created_at');
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!cards || cards.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有卡片。</div>'; return; }
+
+    el.innerHTML = cards.map(c => `
+      <div class="manage-row">
+        <div class="info">
+          <div class="title">${escapeHtml(c.card_owners?.name || '')} · ${escapeHtml(c.card_banks?.name || '')} ${escapeHtml(c.nickname)}</div>
+          <div class="sub">額度 ${c.credit_limit ? Number(c.credit_limit).toLocaleString() : '未設定'}${c.co_brand ? ' · ' + escapeHtml(c.co_brand) : ''}</div>
+        </div>
+        <div class="actions">
+          <button class="edit-btn" onclick="editCard('${c.id}')">編輯</button>
+          <button class="delete-btn" onclick="deleteCard('${c.id}')">刪除</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // ---- 設定：繳款日設定（依「持卡人＋銀行」為單位） ----
+  async function renderStatementManageList(){
+    const el = document.getElementById('statement-manage-list');
+    if (!el) return;
+    el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">讀取中…</div>';
+
+    const { data: cards, error } = await sb
+      .from('card_cards')
+      .select('owner_id, bank_id, card_owners(name), card_banks(name)')
+      .eq('household_id', currentHousehold.id);
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!cards || cards.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有卡片，無法設定繳款日。</div>'; return; }
+
+    // 去重出「持卡人＋銀行」組合
+    const pairs = {};
+    cards.forEach(c => {
+      const key = c.owner_id + '|' + c.bank_id;
+      pairs[key] = { owner_id: c.owner_id, bank_id: c.bank_id, ownerName: c.card_owners?.name, bankName: c.card_banks?.name };
+    });
+
+    const ym = currentYearMonth();
+    const { data: statements } = await sb
+      .from('card_statements')
+      .select('owner_id, bank_id, due_date')
+      .eq('household_id', currentHousehold.id)
+      .eq('year_month', ym);
+    const dueMap = {};
+    (statements || []).forEach(s => { dueMap[s.owner_id + '|' + s.bank_id] = s.due_date; });
+
+    el.innerHTML = Object.keys(pairs).map(key => {
+      const p = pairs[key];
+      const due = dueMap[key] || '';
+      return `<div class="manage-row">
+        <div class="info">
+          <div class="title">${escapeHtml(p.ownerName)} · ${escapeHtml(p.bankName)}</div>
+          <div class="sub">本月（${ym}）繳款日</div>
+        </div>
+        <input type="date" class="mini-date" value="${due}" onchange="saveStatementDueDate('${p.owner_id}', '${p.bank_id}', this.value)">
+      </div>`;
+    }).join('');
+  }
+
+  async function saveStatementDueDate(ownerId, bankId, dueDate){
+    const ym = currentYearMonth();
+    const { error } = await sb.from('card_statements').upsert({
+      household_id: currentHousehold.id,
+      owner_id: ownerId,
+      bank_id: bankId,
+      year_month: ym,
+      due_date: dueDate || null,
+    }, { onConflict: 'owner_id,bank_id,year_month' });
+    if (error) { alert('儲存繳款日失敗：' + error.message); return; }
+    await renderDueList();
+  }
+
+  // ---- 總覽：近期繳款清單 ----
+  async function renderDueList(){
+    const el = document.getElementById('due-list');
+    if (!el) return;
+    const ym = currentYearMonth();
+    const { data: statements, error } = await sb
+      .from('card_statements')
+      .select('id, due_date, is_paid, owner_id, bank_id, card_owners(name), card_banks(name)')
+      .eq('household_id', currentHousehold.id)
+      .eq('year_month', ym)
+      .not('due_date', 'is', null)
+      .order('due_date');
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!statements || statements.length === 0) {
+      el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有設定繳款日，去「設定」新增。</div>';
+      return;
+    }
+    const today = new Date(); today.setHours(0,0,0,0);
+    el.innerHTML = statements.map(s => {
+      const due = new Date(s.due_date + 'T00:00:00');
+      const diffDays = Math.round((due - today) / 86400000);
+      const daysText = s.is_paid ? '已繳款' : (diffDays < 0 ? `已逾期 ${-diffDays} 天` : diffDays === 0 ? '今天到期' : `剩 ${diffDays} 天`);
+      return `<div class="due-row ${s.is_paid ? 'paid' : ''}" onclick="togglePaid('${s.id}', ${!s.is_paid})">
+        <div class="check-circle"></div>
+        <div class="info">
+          <div class="card-label">${escapeHtml(s.card_owners?.name || '')} · ${escapeHtml(s.card_banks?.name || '')}</div>
+          <div class="due-date">繳款日 ${s.due_date}</div>
+        </div>
+        <div class="days">${daysText}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function togglePaid(statementId, newValue){
+    const { error } = await sb.from('card_statements').update({ is_paid: newValue }).eq('id', statementId);
+    if (error) { alert('更新失敗：' + error.message); return; }
+    await renderDueList();
+  }
+
   // ---- 卡片牆 ----
+  function getMonthRange(yearMonth){
+    const [y, m] = yearMonth.split('-').map(Number);
+    const start = yearMonth + '-01';
+    const end = new Date(y, m, 0).toISOString().slice(0, 10); // 該月最後一天
+    return { start, end };
+  }
+
+  function currentYearMonth(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function gaugeClassFor(pct){
+    if (pct >= 85) return 'var(--danger)';
+    if (pct >= 60) return 'var(--warn)';
+    return 'var(--safe)';
+  }
+
   async function renderCardWall(){
     const wall = document.getElementById('card-wall');
     wall.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">讀取卡片中…</div>';
@@ -491,6 +836,21 @@
       wall.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">還沒有卡片，點上面「+ 新增卡片」開始。</div>';
       return;
     }
+
+    // 撈本月每張卡的消費總額
+    const { start, end } = getMonthRange(currentYearMonth());
+    const { data: txs, error: txErr } = await sb
+      .from('card_transactions')
+      .select('card_id, amount_twd')
+      .eq('household_id', currentHousehold.id)
+      .gte('date', start)
+      .lte('date', end);
+    if (txErr) console.error('讀取本月消費總額失敗:', txErr);
+
+    const totalsByCard = {};
+    (txs || []).forEach(t => {
+      totalsByCard[t.card_id] = (totalsByCard[t.card_id] || 0) + Number(t.amount_twd);
+    });
 
     // 依持卡人分組，再依銀行分組（同銀行多張卡合併成一張大卡）
     const byOwner = {};
@@ -515,6 +875,8 @@
       Object.keys(banks).forEach(bankName => {
         const bankCards = banks[bankName];
         const grouped = bankCards.length > 1;
+        let bankTotal = 0;
+
         html += `<div class="card-tile ${grouped ? 'grouped' : ''}">
           <div class="card-top">
             <div class="card-id">
@@ -528,17 +890,20 @@
           </div>
           <div class="subcard-list">`;
         bankCards.forEach(c => {
+          const spent = totalsByCard[c.id] || 0;
+          bankTotal += spent;
           const limitText = c.credit_limit ? Number(c.credit_limit).toLocaleString() : '—';
+          const pct = c.credit_limit ? Math.min(100, (spent / Number(c.credit_limit)) * 100) : 0;
           html += `<div>
             <div class="subcard-top">
               <div class="subcard-name">${escapeHtml(c.nickname)}${c.co_brand && grouped ? ' <small style="color:var(--ink-3); font-weight:600;">(' + escapeHtml(c.co_brand) + ')</small>' : ''}</div>
-              <div class="subcard-amt">NT$ 0 <span>/ ${limitText}</span></div>
+              <div class="subcard-amt">NT$ ${spent.toLocaleString()} <span>/ ${limitText}</span></div>
             </div>
-            <div class="subcard-gauge"><div style="width:0%"></div></div>
+            <div class="subcard-gauge"><div style="width:${pct}%; background:${gaugeClassFor(pct)};"></div></div>
           </div>`;
         });
         html += `</div>
-          <div class="grouped-total"><span class="label">還沒有消費明細</span><span class="value">NT$ 0</span></div>
+          <div class="grouped-total"><span class="label">本月合計</span><span class="value">NT$ ${bankTotal.toLocaleString()}</span></div>
         </div>`;
       });
 
@@ -552,6 +917,300 @@
     const div = document.createElement('div');
     div.textContent = str ?? '';
     return div.innerHTML;
+  }
+
+  // ---- 新增消費表單 ----
+  const cardSelect = document.getElementById('t-card');
+  const categorySelect = document.getElementById('t-category');
+  const toggleTxFormBtn = document.getElementById('toggle-tx-form-btn');
+  const cancelTxFormBtn = document.getElementById('cancel-tx-form-btn');
+  const saveTxBtn = document.getElementById('save-tx-btn');
+  const addTxForm = document.getElementById('add-tx-form');
+  const txFormStatusLine = document.getElementById('tx-form-status-line');
+  const overseasToggle = document.getElementById('t-overseas-toggle');
+  const overseasFields = document.getElementById('overseas-fields');
+
+  function setTxFormStatus(msg){ txFormStatusLine.textContent = msg || ''; }
+
+  async function loadTxFormOptions(){
+    const [{ data: cards, error: cErr }, { data: cats, error: catErr }] = await Promise.all([
+      sb.from('card_cards').select('id, nickname, card_owners(name), card_banks(name)').eq('household_id', currentHousehold.id).order('created_at'),
+      sb.from('card_categories').select('id, name').order('sort_order'),
+    ]);
+    if (cErr) console.error(cErr);
+    if (catErr) console.error(catErr);
+
+    cardSelect.innerHTML = '';
+    (cards || []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.card_owners?.name || ''} · ${c.card_banks?.name || ''} ${c.nickname}`;
+      cardSelect.appendChild(opt);
+    });
+    if (!cards || cards.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '請先到「總覽」新增一張卡片';
+      cardSelect.appendChild(opt);
+    }
+
+    categorySelect.innerHTML = '';
+    (cats || []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id; opt.textContent = c.name;
+      categorySelect.appendChild(opt);
+    });
+
+    document.getElementById('t-date').value = new Date().toISOString().slice(0, 10);
+  }
+
+  toggleTxFormBtn.addEventListener('click', () => {
+    addTxForm.classList.toggle('open');
+    setTxFormStatus('');
+  });
+  cancelTxFormBtn.addEventListener('click', () => {
+    addTxForm.classList.remove('open');
+    setTxFormStatus('');
+  });
+  overseasToggle.addEventListener('change', () => {
+    overseasFields.style.display = overseasToggle.checked ? 'block' : 'none';
+  });
+
+  saveTxBtn.addEventListener('click', async () => {
+    const cardId = cardSelect.value;
+    const date = document.getElementById('t-date').value;
+    const store = document.getElementById('t-store').value.trim();
+    const amountRaw = document.getElementById('t-amount').value;
+    const categoryId = categorySelect.value;
+    const isOverseas = overseasToggle.checked;
+    const currency = document.getElementById('t-currency').value.trim();
+    const foreignAmountRaw = document.getElementById('t-foreign-amount').value;
+
+    if (!cardId) { setTxFormStatus('請先新增一張卡片，才能記消費'); return; }
+    if (!date) { setTxFormStatus('請選擇消費日期'); return; }
+    if (!store) { setTxFormStatus('請輸入店家'); return; }
+    if (!amountRaw || Number(amountRaw) <= 0) { setTxFormStatus('請輸入金額'); return; }
+
+    saveTxBtn.disabled = true;
+    setTxFormStatus('儲存中…');
+    try {
+      const { error } = await sb.from('card_transactions').insert({
+        household_id: currentHousehold.id,
+        card_id: cardId,
+        date: date,
+        store_name: store,
+        amount_twd: Number(amountRaw),
+        category_id: categoryId || null,
+        original_currency: isOverseas && currency ? currency.toUpperCase() : null,
+        original_amount: isOverseas && foreignAmountRaw ? Number(foreignAmountRaw) : null,
+      });
+      if (error) throw error;
+
+      document.getElementById('t-store').value = '';
+      document.getElementById('t-amount').value = '';
+      document.getElementById('t-currency').value = '';
+      document.getElementById('t-foreign-amount').value = '';
+      overseasToggle.checked = false;
+      overseasFields.style.display = 'none';
+      addTxForm.classList.remove('open');
+      setTxFormStatus('');
+      await renderTxList();
+      await renderCardWall();
+      await renderCategoryRank();
+    } catch (e) {
+      console.error(e);
+      setTxFormStatus('儲存失敗：' + (e.message || JSON.stringify(e)));
+    } finally {
+      saveTxBtn.disabled = false;
+    }
+  });
+
+  async function deleteTransaction(id){
+    if (!confirm('確定要刪除這筆消費嗎？')) return;
+    const { error } = await sb.from('card_transactions').delete().eq('id', id);
+    if (error) { alert('刪除失敗：' + error.message); return; }
+    await renderTxList();
+    await renderCardWall();
+    await renderCategoryRank();
+  }
+
+  async function renderTxList(){
+    const listEl = document.getElementById('tx-list');
+    listEl.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">讀取消費明細中…</div>';
+
+    const ym = currentYearMonth();
+    const { start, end } = getMonthRange(ym);
+    document.getElementById('month-label').textContent = ym.replace('-', ' 年 ') + ' 月消費';
+
+    const { data: txs, error } = await sb
+      .from('card_transactions')
+      .select('id, date, store_name, amount_twd, card_cards(nickname, card_banks(name)), card_categories(name)')
+      .eq('household_id', currentHousehold.id)
+      .gte('date', start)
+      .lte('date', end)
+      .order('date', { ascending: false });
+
+    if (error) {
+      listEl.innerHTML = '<div class="status-line error">讀取消費明細失敗：' + (error.message || JSON.stringify(error)) + '</div>';
+      return;
+    }
+
+    await updateMonthGrandTotal();
+
+    if (!txs || txs.length === 0) {
+      listEl.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">這個月還沒有消費紀錄。</div>';
+      return;
+    }
+
+    // 依日期分組顯示
+    const byDate = {};
+    txs.forEach(t => {
+      byDate[t.date] = byDate[t.date] || [];
+      byDate[t.date].push(t);
+    });
+
+    let html = '';
+    Object.keys(byDate).sort().reverse().forEach(date => {
+      const [, m, d] = date.split('-');
+      html += `<div class="tx-date-head">${Number(m)} 月 ${Number(d)} 日</div>`;
+      byDate[date].forEach(t => {
+        const bankName = t.card_cards?.card_banks?.name || '';
+        const cardNick = t.card_cards?.nickname || '';
+        const catName = t.card_categories?.name || '未分類';
+        html += `<div class="tx-row">
+          <div class="tx-dot"></div>
+          <div class="tx-info">
+            <div class="tx-store">${escapeHtml(t.store_name)}</div>
+            <div class="tx-meta">${escapeHtml(bankName)} ${escapeHtml(cardNick)} · ${escapeHtml(catName)}</div>
+          </div>
+          <div class="tx-amount mono">-${Number(t.amount_twd).toLocaleString()}</div>
+          <button class="tx-delete" onclick="deleteTransaction('${t.id}')">刪除</button>
+        </div>`;
+      });
+    });
+
+    listEl.innerHTML = html;
+  }
+
+  // ---- 本月總支出合計（刷卡 + 固定支出） ----
+  async function updateMonthGrandTotal(){
+    const ym = currentYearMonth();
+    const { start, end } = getMonthRange(ym);
+    const [{ data: txs }, { data: fxs }] = await Promise.all([
+      sb.from('card_transactions').select('amount_twd').eq('household_id', currentHousehold.id).gte('date', start).lte('date', end),
+      sb.from('card_fixed_expenses').select('amount').eq('household_id', currentHousehold.id).eq('year_month', ym),
+    ]);
+    const txTotal = (txs || []).reduce((s, t) => s + Number(t.amount_twd), 0);
+    const fxTotal = (fxs || []).reduce((s, f) => s + Number(f.amount), 0);
+    document.getElementById('month-total-value').textContent = 'NT$ ' + (txTotal + fxTotal).toLocaleString();
+    document.getElementById('month-caption').textContent = `刷卡 ${txTotal.toLocaleString()} + 固定支出 ${fxTotal.toLocaleString()}`;
+  }
+
+  // ---- 固定支出 ----
+  const toggleFxFormBtn = document.getElementById('toggle-fx-form-btn');
+  const cancelFxFormBtn = document.getElementById('cancel-fx-form-btn');
+  const saveFxBtn = document.getElementById('save-fx-btn');
+  const addFxForm = document.getElementById('add-fx-form');
+  const fxFormStatusLine = document.getElementById('fx-form-status-line');
+
+  toggleFxFormBtn.addEventListener('click', () => {
+    addFxForm.classList.toggle('open');
+    fxFormStatusLine.textContent = '';
+  });
+  cancelFxFormBtn.addEventListener('click', () => {
+    addFxForm.classList.remove('open');
+    fxFormStatusLine.textContent = '';
+  });
+
+  saveFxBtn.addEventListener('click', async () => {
+    const name = document.getElementById('fx-name').value.trim();
+    const amountRaw = document.getElementById('fx-amount').value;
+    if (!name) { fxFormStatusLine.textContent = '請輸入項目名稱'; return; }
+    if (!amountRaw || Number(amountRaw) <= 0) { fxFormStatusLine.textContent = '請輸入金額'; return; }
+
+    saveFxBtn.disabled = true;
+    fxFormStatusLine.textContent = '儲存中…';
+    try {
+      const { error } = await sb.from('card_fixed_expenses').insert({
+        household_id: currentHousehold.id,
+        item_name: name,
+        amount: Number(amountRaw),
+        year_month: currentYearMonth(),
+      });
+      if (error) throw error;
+      document.getElementById('fx-name').value = '';
+      document.getElementById('fx-amount').value = '';
+      addFxForm.classList.remove('open');
+      fxFormStatusLine.textContent = '';
+      await renderFxList();
+      await updateMonthGrandTotal();
+    } catch (e) {
+      fxFormStatusLine.textContent = '儲存失敗：' + (e.message || JSON.stringify(e));
+    } finally {
+      saveFxBtn.disabled = false;
+    }
+  });
+
+  async function deleteFx(id){
+    if (!confirm('確定要刪除這筆固定支出嗎？')) return;
+    const { error } = await sb.from('card_fixed_expenses').delete().eq('id', id);
+    if (error) { alert('刪除失敗：' + error.message); return; }
+    await renderFxList();
+    await updateMonthGrandTotal();
+  }
+
+  async function renderFxList(){
+    const el = document.getElementById('fx-list');
+    const ym = currentYearMonth();
+    const { data: fxs, error } = await sb
+      .from('card_fixed_expenses')
+      .select('id, item_name, amount')
+      .eq('household_id', currentHousehold.id)
+      .eq('year_month', ym)
+      .order('created_at');
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!fxs || fxs.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">這個月還沒有固定支出。</div>'; return; }
+    el.innerHTML = fxs.map(f => `
+      <div class="tx-row">
+        <div class="tx-dot" style="background:var(--ink-3);"></div>
+        <div class="tx-info"><div class="tx-store">${escapeHtml(f.item_name)}</div><div class="tx-meta">每月固定 · 手動輸入</div></div>
+        <div class="tx-amount mono">-${Number(f.amount).toLocaleString()}</div>
+        <button class="tx-delete" onclick="deleteFx('${f.id}')">刪除</button>
+      </div>`).join('');
+  }
+
+  // ---- 消費類別佔比 ----
+  async function renderCategoryRank(){
+    const el = document.getElementById('category-rank');
+    if (!el) return;
+    const ym = currentYearMonth();
+    const { start, end } = getMonthRange(ym);
+    const { data: txs, error } = await sb
+      .from('card_transactions')
+      .select('amount_twd, card_categories(name)')
+      .eq('household_id', currentHousehold.id)
+      .gte('date', start)
+      .lte('date', end);
+    if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+    if (!txs || txs.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">這個月還沒有消費資料。</div>'; return; }
+
+    const byCat = {};
+    txs.forEach(t => {
+      const name = t.card_categories?.name || '未分類';
+      byCat[name] = (byCat[name] || 0) + Number(t.amount_twd);
+    });
+    const sorted = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0][1];
+
+    el.innerHTML = sorted.map(([name, amt]) => `
+      <div class="rank-row">
+        <div class="rank-swatch"></div>
+        <div class="rank-info">
+          <div class="rank-name">${escapeHtml(name)}</div>
+          <div class="rank-track"><div class="rank-fill" style="width:${(amt / max) * 100}%"></div></div>
+        </div>
+        <div class="rank-amount mono">${amt.toLocaleString()}</div>
+      </div>`).join('');
   }
 
   let currentHousehold = null;
