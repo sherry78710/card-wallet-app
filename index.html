@@ -17,7 +17,7 @@
     --danger:#B17268; --danger-soft:#F3E5E1;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html,body{ background:var(--bg); color:var(--ink-1); font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  html,body{ background:var(--bg); color:var(--ink-1); font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; width:100%; overflow-x:hidden; }
   .mono{ font-family:'JetBrains Mono', monospace; font-variant-numeric:tabular-nums; }
 
   .screen{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
@@ -114,7 +114,7 @@
   }
   .owner-head h3{ font-size:14.5px; font-weight:800; }
 
-  .carousel{ display:flex; gap:12px; overflow-x:auto; padding:2px 0 8px; scroll-snap-type:x mandatory; margin:0 -20px; padding-left:20px; padding-right:20px;}
+  .carousel{ display:flex; gap:12px; overflow-x:auto; padding:2px 2px 8px; scroll-snap-type:x mandatory; }
   .carousel::-webkit-scrollbar{ display:none; }
   .card-tile{
     flex:0 0 236px; scroll-snap-align:start; border-radius:18px; padding:17px;
@@ -139,6 +139,17 @@
   .grouped-total .label{ font-size:10.5px; color:var(--ink-3); font-weight:600; }
   .grouped-total .value{ font-size:15px; font-weight:800; color:var(--ink-1); }
   .card-edit-link{ font-size:10.5px; color:var(--ink-3); font-weight:600; margin-top:10px; display:inline-block; cursor:pointer;}
+
+  /* ---- Bottom tab bar ---- */
+  .home{ padding-bottom:92px; }
+  .tabbar{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px;
+    background:rgba(248,246,241,.94); backdrop-filter:blur(14px); border-top:1px solid var(--border);
+    display:flex; padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  }
+  .tab{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--ink-3); font-size:10.5px; font-weight:700; cursor:pointer; }
+  .tab.active{ color:var(--accent); }
+  .tab svg{ width:21px; height:21px; }
 </style>
 </head>
 <body>
@@ -161,66 +172,104 @@
 </div>
 
 <div id="home-screen" style="display:none;">
-  <div class="home" style="display:block;">
+  <div class="home">
     <div class="topbar">
       <div>
         <div class="eyebrow">CARD WALLET</div>
         <h1>刷卡總管</h1>
       </div>
-      <button class="logout-btn" id="logout-btn">切換同步碼</button>
     </div>
 
     <div class="status-line error" id="home-status-line"></div>
 
-    <div class="stat-row">
-      <div class="stat-box">
-        <div class="label">持卡人</div>
-        <div class="value" id="stat-owners">–</div>
+    <!-- 總覽（含卡片牆） -->
+    <div class="page" data-page="overview">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="label">持卡人</div>
+          <div class="value" id="stat-owners">–</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">卡片數</div>
+          <div class="value" id="stat-cards">–</div>
+        </div>
       </div>
-      <div class="stat-box">
-        <div class="label">卡片數</div>
-        <div class="value" id="stat-cards">–</div>
+
+      <div class="section">
+        <div class="section-head">
+          <h2>我的卡片</h2>
+          <button id="toggle-form-btn">+ 新增卡片</button>
+        </div>
+
+        <div class="form-card" id="add-card-form">
+          <div class="form-row">
+            <label for="f-owner">持卡人</label>
+            <select id="f-owner"></select>
+          </div>
+          <div class="form-row">
+            <label for="f-bank">銀行</label>
+            <select id="f-bank"></select>
+          </div>
+          <div class="form-row">
+            <label for="f-nickname">卡片名稱</label>
+            <input id="f-nickname" type="text" placeholder="例如：J 卡、Richart 卡">
+          </div>
+          <div class="form-row">
+            <label for="f-limit">額度</label>
+            <input id="f-limit" type="number" inputmode="numeric" placeholder="例如：60000">
+          </div>
+          <div class="form-row">
+            <label for="f-cobrand">聯名標籤（選填）</label>
+            <input id="f-cobrand" type="text" placeholder="例如：好市多聯名">
+          </div>
+          <div class="status-line error" id="form-status-line"></div>
+          <div class="form-actions">
+            <button class="btn-ghost" id="cancel-form-btn">取消</button>
+            <button class="btn-primary" id="save-card-btn">儲存卡片</button>
+          </div>
+        </div>
+
+        <div id="card-wall"></div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-head">
-        <h2>我的卡片</h2>
-        <button id="toggle-form-btn">+ 新增卡片</button>
-      </div>
-
-      <div class="form-card" id="add-card-form">
-        <div class="form-row">
-          <label for="f-owner">持卡人</label>
-          <select id="f-owner"></select>
-        </div>
-        <div class="form-row">
-          <label for="f-bank">銀行</label>
-          <select id="f-bank"></select>
-        </div>
-        <div class="form-row">
-          <label for="f-nickname">卡片名稱</label>
-          <input id="f-nickname" type="text" placeholder="例如：J 卡、Richart 卡">
-        </div>
-        <div class="form-row">
-          <label for="f-limit">額度</label>
-          <input id="f-limit" type="number" inputmode="numeric" placeholder="例如：60000">
-        </div>
-        <div class="form-row">
-          <label for="f-cobrand">聯名標籤（選填）</label>
-          <input id="f-cobrand" type="text" placeholder="例如：好市多聯名">
-        </div>
-        <div class="status-line error" id="form-status-line"></div>
-        <div class="form-actions">
-          <button class="btn-ghost" id="cancel-form-btn">取消</button>
-          <button class="btn-primary" id="save-card-btn">儲存卡片</button>
+    <!-- 明細（消費明細功能尚未開放） -->
+    <div class="page" data-page="details" style="display:none;">
+      <div class="section" style="margin-top:8px;">
+        <div style="text-align:center; padding:60px 20px; color:var(--ink-3);">
+          <div style="font-size:13px; font-weight:600;">消費明細尚未開放</div>
+          <div style="font-size:12px; margin-top:6px; line-height:1.6;">等 PDF 匯入與手動記帳功能做好後<br>這裡會顯示每月消費清單與統計</div>
         </div>
       </div>
-
-      <div id="card-wall"></div>
     </div>
 
-    <div class="code-pill" id="code-pill" style="margin-top:6px;">SYNC · ------</div>
+    <!-- 設定 -->
+    <div class="page" data-page="settings" style="display:none;">
+      <div class="section" style="margin-top:8px;">
+        <div class="section-head"><h2>同步碼</h2></div>
+        <div class="form-card open" style="text-align:center; padding:22px;">
+          <div class="code-pill" id="code-pill" style="margin:0 0 14px;">SYNC · ------</div>
+          <div class="form-actions" style="margin-top:4px;">
+            <button class="btn-ghost" id="logout-btn" style="flex:1;">切換同步碼</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab active" data-tab="overview" onclick="showPage('overview', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      總覽
+    </div>
+    <div class="tab" data-tab="details" onclick="showPage('details', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      明細
+    </div>
+    <div class="tab" data-tab="settings" onclick="showPage('settings', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8"/></svg>
+      設定
+    </div>
   </div>
 </div>
 
@@ -506,6 +555,14 @@
   }
 
   let currentHousehold = null;
+
+  function showPage(name, el){
+    document.querySelectorAll('.page').forEach(p => {
+      p.style.display = (p.dataset.page === name) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
 
 
   btn.addEventListener('click', () => {
