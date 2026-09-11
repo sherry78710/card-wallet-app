@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刷卡總管</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#EDE9E1; --surface:#F8F6F1; --surface-alt:#E5E0D5; --border:#DAD4C6;
+    --ink-1:#3B3833; --ink-2:#7A756C; --ink-3:#A69F93;
+    --accent:#7E93A0; --accent-soft:#E7ECEA;
+    --safe:#7C9473; --safe-soft:#E9EEE3;
+    --warn:#B9925A; --warn-soft:#F3EAD9;
+    --danger:#B17268; --danger-soft:#F3E5E1;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{ background:var(--bg); color:var(--ink-1); font-family:'Noto Sans TC', sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  .mono{ font-family:'JetBrains Mono', monospace; font-variant-numeric:tabular-nums; }
+
+  .screen{ min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+  .lockup{ text-align:center; margin-bottom:34px; }
+  .lockup .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:var(--ink-3); font-weight:600; }
+  .lockup h1{ font-size:26px; font-weight:800; margin-top:6px; }
+
+  .auth-card{
+    width:100%; max-width:360px; background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:26px 24px; box-shadow:0 14px 34px -14px rgba(30,25,15,.18);
+  }
+  .auth-card label{ font-size:12.5px; font-weight:700; color:var(--ink-2); display:block; margin-bottom:8px; }
+  .auth-card input{
+    width:100%; border:1px solid var(--border); background:var(--bg); border-radius:11px;
+    padding:13px 14px; font-size:15px; font-family:'JetBrains Mono', monospace; letter-spacing:.04em;
+    color:var(--ink-1); outline:none;
+  }
+  .auth-card input:focus{ border-color:var(--accent); }
+  .auth-card .hint{ font-size:11.5px; color:var(--ink-3); margin-top:8px; line-height:1.6; }
+  .auth-card button{
+    width:100%; margin-top:18px; background:var(--accent); color:#fff; border:none;
+    border-radius:11px; padding:13px 0; font-size:14.5px; font-weight:800;
+    font-family:'Noto Sans TC', sans-serif; cursor:pointer;
+  }
+  .auth-card button:disabled{ opacity:.5; cursor:default; }
+  .auth-card button.secondary{ background:none; color:var(--ink-2); border:1px solid var(--border); margin-top:8px; }
+
+  .status-line{ font-size:12.5px; margin-top:14px; text-align:center; min-height:16px; }
+  .status-line.error{ color:var(--danger); }
+  .status-line.ok{ color:var(--safe); }
+
+  /* ---- Post-login placeholder home (temporary until the real screens are built) ---- */
+  .home{ display:none; width:100%; max-width:430px; padding:22px 20px 60px; }
+  .home .topbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .home .eyebrow{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:var(--ink-3); font-weight:600;}
+  .home h1{ font-size:20px; font-weight:800; margin-top:3px;}
+  .logout-btn{ font-size:12px; color:var(--ink-3); font-weight:700; background:none; border:none; cursor:pointer; }
+
+  .empty-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:28px 20px; text-align:center; margin-bottom:14px;
+  }
+  .empty-card .big{ font-size:32px; margin-bottom:10px; }
+  .empty-card h2{ font-size:15px; font-weight:800; margin-bottom:6px; }
+  .empty-card p{ font-size:12.5px; color:var(--ink-2); line-height:1.7; }
+
+  .stat-row{ display:flex; gap:10px; margin-bottom:14px; }
+  .stat-box{ flex:1; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; }
+  .stat-box .label{ font-size:11px; color:var(--ink-3); font-weight:600; }
+  .stat-box .value{ font-size:20px; font-weight:800; margin-top:4px; }
+
+  .code-pill{
+    display:inline-flex; align-items:center; gap:6px; background:var(--accent-soft); color:var(--accent);
+    font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:20px; margin-top:10px;
+    font-family:'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+
+<div class="screen" id="auth-screen">
+  <div class="lockup">
+    <div class="eyebrow">CARD WALLET</div>
+    <h1>刷卡總管</h1>
+  </div>
+
+  <div class="auth-card">
+    <label for="sync-code-input">同步碼</label>
+    <input id="sync-code-input" type="text" placeholder="自己設一組(例如生日、暗語)" autocomplete="off" autocapitalize="off">
+    <div class="hint">
+      第一次使用會自動幫你建立一個新帳本；之後在任何一支手機輸入同一組碼，就能看到同一份資料（例如給另一半也輸入這組碼）。
+    </div>
+    <button id="connect-btn">連接帳本</button>
+    <div class="status-line" id="status-line"></div>
+  </div>
+</div>
+
+<div class="screen" id="home-screen" style="display:none;">
+  <div class="home" style="display:block;">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">CARD WALLET</div>
+        <h1>刷卡總管</h1>
+      </div>
+      <button class="logout-btn" id="logout-btn">切換同步碼</button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="label">持卡人</div>
+        <div class="value" id="stat-owners">–</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">卡片數</div>
+        <div class="value" id="stat-cards">–</div>
+      </div>
+    </div>
+
+    <div class="empty-card">
+      <div class="big">💳</div>
+      <h2>帳本已連接，還沒有卡片</h2>
+      <p>資料庫已經接上了，這是第一版的骨架畫面。<br>下一步會在這裡做「新增卡片」跟完整的卡片牆／明細畫面。</p>
+      <div class="code-pill" id="code-pill">SYNC · ------</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://djujrrwnzsddyynplsqx.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqdWpycnduenNkZHl5bnBsc3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MjY5MjUsImV4cCI6MjA5ODQwMjkyNX0.0lm0Nx2EK7CxXCWUa5bAWcVk9v_TQRHoM6UmFFxPjss';
+  if (typeof supabase === 'undefined') {
+    document.getElementById('status-line').textContent = 'Supabase 函式庫載入失敗，請檢查網路連線後重新整理頁面';
+    document.getElementById('status-line').className = 'status-line error';
+    throw new Error('Supabase JS CDN failed to load');
+  }
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const LS_KEY = 'card_wallet_household';
+
+  const authScreen = document.getElementById('auth-screen');
+  const homeScreen = document.getElementById('home-screen');
+  const input = document.getElementById('sync-code-input');
+  const btn = document.getElementById('connect-btn');
+  const statusLine = document.getElementById('status-line');
+  const codePill = document.getElementById('code-pill');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  function setStatus(msg, kind){
+    statusLine.textContent = msg || '';
+    statusLine.className = 'status-line' + (kind ? ' ' + kind : '');
+  }
+
+  async function connectWithCode(code){
+    setStatus('連接中…');
+    btn.disabled = true;
+    try {
+      // 1. 先查這組碼有沒有對應的帳本
+      let { data: existing, error: findErr } = await sb
+        .from('card_households')
+        .select('id, sync_code')
+        .eq('sync_code', code)
+        .maybeSingle();
+
+      if (findErr) throw findErr;
+
+      let household = existing;
+
+      if (!household) {
+        // 2. 沒有的話，建立新帳本 + 一個預設的「我」
+        const { data: created, error: createErr } = await sb
+          .from('card_households')
+          .insert({ sync_code: code })
+          .select('id, sync_code')
+          .single();
+        if (createErr) throw createErr;
+        household = created;
+
+        const { error: ownerErr } = await sb
+          .from('card_owners')
+          .insert({ household_id: household.id, name: '我' });
+        if (ownerErr) throw ownerErr;
+      }
+
+      localStorage.setItem(LS_KEY, JSON.stringify(household));
+      setStatus('已連接！', 'ok');
+      await enterHome(household);
+    } catch (e) {
+      console.error('連接失敗詳情:', e);
+      const detail = (e && (e.message || e.error_description || e.hint)) || JSON.stringify(e) || '未知錯誤';
+      setStatus('連接失敗：' + detail, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function enterHome(household){
+    authScreen.style.display = 'none';
+    homeScreen.style.display = 'flex';
+    codePill.textContent = 'SYNC · ' + household.sync_code;
+
+    const [{ count: ownerCount }, { count: cardCount }] = await Promise.all([
+      sb.from('card_owners').select('id', { count: 'exact', head: true }).eq('household_id', household.id),
+      sb.from('card_cards').select('id', { count: 'exact', head: true }).eq('household_id', household.id),
+    ]);
+
+    document.getElementById('stat-owners').textContent = ownerCount ?? '0';
+    document.getElementById('stat-cards').textContent = cardCount ?? '0';
+  }
+
+  btn.addEventListener('click', () => {
+    const code = input.value.trim();
+    if (!code) { setStatus('請先輸入同步碼', 'error'); return; }
+    connectWithCode(code);
+  });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') btn.click(); });
+
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem(LS_KEY);
+    homeScreen.style.display = 'none';
+    authScreen.style.display = 'flex';
+    input.value = '';
+    setStatus('');
+  });
+
+  // 自動登入：如果這支手機之前設定過同步碼，直接進首頁
+  (function tryAutoLogin(){
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) {
+      try {
+        const household = JSON.parse(saved);
+        enterHome(household);
+      } catch (e) { localStorage.removeItem(LS_KEY); }
+    }
+  })();
+</script>
+</body>
+</html>
