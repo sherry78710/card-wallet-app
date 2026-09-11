@@ -196,6 +196,57 @@
   }
   .segmented button.active{ background:var(--surface); color:var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.10); }
 
+  /* ---- Date nav + picker ---- */
+  .date-nav{ display:flex; align-items:center; justify-content:center; gap:18px; margin:14px 0 16px; }
+  .date-nav button{
+    width:30px; height:30px; border-radius:9px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink-2); font-size:16px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .date-nav button:disabled{ opacity:.35; cursor:default; }
+  .date-nav span{ font-size:13.5px; font-weight:700; color:var(--ink-1); min-width:96px; text-align:center; cursor:pointer; }
+
+  .period-picker{
+    display:none; position:absolute; top:38px; left:50%; transform:translateX(-50%);
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:14px; box-shadow:0 14px 30px -10px rgba(30,25,15,.2); z-index:20; width:264px;
+  }
+  .period-picker.open{ display:block; }
+  .picker-year-row{
+    display:none; align-items:center; justify-content:center; gap:16px;
+    margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed var(--border);
+  }
+  .picker-year-row button{
+    width:26px; height:26px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface-alt); color:var(--ink-2); font-size:14px; font-weight:700; cursor:pointer;
+  }
+  .picker-year-row span{ font-size:14px; font-weight:800; color:var(--ink-1); min-width:52px; text-align:center; }
+  .picker-title{ font-size:11.5px; font-weight:700; color:var(--ink-2); text-align:center; margin-bottom:10px; }
+  .picker-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:7px; }
+  .picker-grid.years{ grid-template-columns:repeat(3,1fr); }
+  .picker-grid button{
+    border:1px solid var(--border); background:var(--surface-alt); color:var(--ink-1);
+    font-size:12px; font-weight:700; padding:8px 2px; border-radius:9px; cursor:pointer;
+    white-space:nowrap;
+  }
+  .picker-grid button.sel{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .picker-grid button:disabled{ opacity:.3; cursor:default; }
+
+  .wheel-col{
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    max-height:160px; overflow-y:auto; scroll-snap-type:y mandatory;
+    padding:60px 0; position:relative;
+  }
+  .wheel-col::before{
+    content:''; position:absolute; top:50%; left:8px; right:8px; height:34px;
+    transform:translateY(-50%); background:var(--surface-alt); border-radius:9px; z-index:-1;
+  }
+  .wheel-col button{
+    scroll-snap-align:center; border:none; background:none; width:100%;
+    font-size:15px; font-weight:600; color:var(--ink-3); padding:9px 0; border-radius:0;
+  }
+  .wheel-col button.sel{ color:var(--accent); font-size:17px; font-weight:800; }
+
   /* ---- Year view ---- */
   .year-total{ margin-bottom:18px; }
   .year-total .num{ font-size:32px; font-weight:800; color:var(--ink-1); }
@@ -235,6 +286,16 @@
   .pdf-row input.pdf-amount{ width:80px; flex-shrink:0; font-size:12.5px; padding:6px 7px; border:1px solid var(--border); border-radius:7px; background:var(--bg); text-align:right; }
   .pdf-row select.pdf-cat{ flex:0 0 92px; font-size:11px; padding:6px 4px; border:1px solid var(--border); border-radius:7px; background:var(--bg); }
   .pdf-row .pdf-flag{ font-size:9.5px; color:var(--warn); font-weight:700; flex-basis:100%; }
+
+  .pdf-total-check{
+    display:flex; justify-content:space-between; align-items:center;
+    border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; font-weight:700;
+  }
+  .pdf-total-check.match{ background:var(--safe-soft); color:var(--safe); }
+  .pdf-total-check.mismatch{ background:var(--danger-soft); color:var(--danger); }
+  .pdf-total-check.unknown{ background:var(--surface-alt); color:var(--ink-2); }
+  .pdf-total-check .row{ display:flex; flex-direction:column; gap:2px; }
+  .pdf-total-check .row span{ font-size:10.5px; font-weight:600; opacity:.85; }
   .tx-date-head{ font-size:11.5px; color:var(--ink-3); font-weight:700; margin:16px 0 8px; letter-spacing:.03em; }
   .tx-date-head:first-child{ margin-top:0; }
   .tx-row{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px dashed var(--border); }
@@ -350,6 +411,22 @@
           <div class="segmented">
             <button id="btn-month" class="active" onclick="showDetailsView('month')">本月</button>
             <button id="btn-year" onclick="showDetailsView('year')">本年</button>
+          </div>
+        </div>
+
+        <div class="date-nav" style="position:relative;">
+          <button onclick="stepPeriod(-1)" aria-label="上一個">‹</button>
+          <span id="period-label" onclick="togglePicker()">2026 年 8 月</span>
+          <button onclick="stepPeriod(1)" aria-label="下一個" id="period-next">›</button>
+
+          <div class="period-picker" id="period-picker">
+            <div class="picker-year-row" id="picker-year-row">
+              <button onclick="stepPickerYear(-1)">‹</button>
+              <span id="picker-year-label">2026</span>
+              <button onclick="stepPickerYear(1)">›</button>
+            </div>
+            <div class="picker-title" id="picker-title">選擇月份</div>
+            <div class="picker-grid" id="picker-grid"></div>
           </div>
         </div>
 
@@ -514,7 +591,10 @@
       </div>
 
       <div class="section">
-        <div class="section-head"><h2>繳款日設定</h2></div>
+        <div class="section-head"><h2>結帳日／繳款日設定</h2></div>
+        <div class="flip-hint" style="text-align:left; margin-bottom:10px; display:block; line-height:1.6;">
+          每組「持卡人＋銀行」只要設定一次，之後每個月自動套用同一天。如果是月中結帳、下個月初才繳款，記得勾選「跨到下個月」。
+        </div>
         <div id="statement-manage-list"></div>
       </div>
 
@@ -543,6 +623,7 @@
           <div class="section-head" style="margin-top:18px;">
             <h2 style="font-size:14px;">解析結果（<span id="pdf-review-count">0</span> 筆，請確認）</h2>
           </div>
+          <div id="pdf-total-check"></div>
           <div id="pdf-review-list"></div>
           <div class="form-actions" style="margin-top:12px;">
             <button class="btn-ghost" id="pdf-cancel-btn">全部取消</button>
@@ -663,6 +744,7 @@
     await renderFxList();
     await renderCategoryRank();
     await loadPdfTargetCardOptions();
+    refreshPeriodLabel();
   }
 
   // ---- 新增／編輯卡片表單 ----
@@ -819,10 +901,18 @@
     const { data: cards, error } = await sb
       .from('card_cards')
       .select('id, nickname, credit_limit, co_brand, card_owners(name), card_banks(name)')
-      .eq('household_id', currentHousehold.id)
-      .order('created_at');
+      .eq('household_id', currentHousehold.id);
     if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
     if (!cards || cards.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有卡片。</div>'; return; }
+
+    // 排序：先依持卡人名稱，再依銀行名稱，讓同一個人、同一家銀行的卡片排在一起
+    cards.sort((a, b) => {
+      const oa = a.card_owners?.name || '', ob = b.card_owners?.name || '';
+      if (oa !== ob) return oa.localeCompare(ob, 'zh-Hant');
+      const ba = a.card_banks?.name || '', bb = b.card_banks?.name || '';
+      if (ba !== bb) return ba.localeCompare(bb, 'zh-Hant');
+      return (a.nickname || '').localeCompare(b.nickname || '', 'zh-Hant');
+    });
 
     el.innerHTML = cards.map(c => `
       <div class="manage-row">
@@ -837,7 +927,7 @@
       </div>`).join('');
   }
 
-  // ---- 設定：繳款日設定（依「持卡人＋銀行」為單位） ----
+  // ---- 設定：結帳日／繳款日排程（設一次，每月自動套用）----
   async function renderStatementManageList(){
     const el = document.getElementById('statement-manage-list');
     if (!el) return;
@@ -850,70 +940,115 @@
     if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
     if (!cards || cards.length === 0) { el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有卡片，無法設定繳款日。</div>'; return; }
 
-    // 去重出「持卡人＋銀行」組合
-    const pairs = {};
+    // 去重出「持卡人＋銀行」組合，並排序（跟卡片管理同一套邏輯，看起來才會一致）
+    const pairsMap = {};
     cards.forEach(c => {
       const key = c.owner_id + '|' + c.bank_id;
-      pairs[key] = { owner_id: c.owner_id, bank_id: c.bank_id, ownerName: c.card_owners?.name, bankName: c.card_banks?.name };
+      pairsMap[key] = { owner_id: c.owner_id, bank_id: c.bank_id, ownerName: c.card_owners?.name || '', bankName: c.card_banks?.name || '' };
+    });
+    const pairs = Object.values(pairsMap).sort((a, b) => {
+      if (a.ownerName !== b.ownerName) return a.ownerName.localeCompare(b.ownerName, 'zh-Hant');
+      return a.bankName.localeCompare(b.bankName, 'zh-Hant');
     });
 
-    const ym = currentYearMonth();
-    const { data: statements } = await sb
-      .from('card_statements')
-      .select('owner_id, bank_id, due_date')
-      .eq('household_id', currentHousehold.id)
-      .eq('year_month', ym);
-    const dueMap = {};
-    (statements || []).forEach(s => { dueMap[s.owner_id + '|' + s.bank_id] = s.due_date; });
+    const { data: schedules } = await sb
+      .from('card_payment_schedules')
+      .select('owner_id, bank_id, closing_day, due_day, due_month_offset')
+      .eq('household_id', currentHousehold.id);
+    const schedMap = {};
+    (schedules || []).forEach(s => { schedMap[s.owner_id + '|' + s.bank_id] = s; });
 
-    el.innerHTML = Object.keys(pairs).map(key => {
-      const p = pairs[key];
-      const due = dueMap[key] || '';
-      return `<div class="manage-row">
-        <div class="info">
+    el.innerHTML = pairs.map(p => {
+      const key = p.owner_id + '|' + p.bank_id;
+      const s = schedMap[key] || {};
+      return `<div class="manage-row" style="flex-wrap:wrap;">
+        <div class="info" style="flex-basis:100%; margin-bottom:8px;">
           <div class="title">${escapeHtml(p.ownerName)} · ${escapeHtml(p.bankName)}</div>
-          <div class="sub">本月（${ym}）繳款日</div>
+          <div class="sub">結帳日／繳款日設一次，每月自動套用</div>
         </div>
-        <input type="date" class="mini-date" value="${due}" onchange="saveStatementDueDate('${p.owner_id}', '${p.bank_id}', this.value)">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; width:100%;">
+          <label style="font-size:11px; color:var(--ink-2);">結帳日
+            <input type="number" min="1" max="31" class="mini-date" style="width:52px;" id="sched-closing-${key.replace('|','-')}" value="${s.closing_day ?? ''}">
+          </label>
+          <label style="font-size:11px; color:var(--ink-2);">繳款日
+            <input type="number" min="1" max="31" class="mini-date" style="width:52px;" id="sched-due-${key.replace('|','-')}" value="${s.due_day ?? ''}">
+          </label>
+          <label style="font-size:11px; color:var(--ink-2); display:flex; align-items:center; gap:4px;">
+            <input type="checkbox" style="width:auto;" id="sched-offset-${key.replace('|','-')}" ${s.due_month_offset === 1 ? 'checked' : ''}>
+            繳款日跨到下個月
+          </label>
+          <button class="edit-btn" style="margin-left:auto;" onclick="saveSchedule('${p.owner_id}', '${p.bank_id}')">儲存</button>
+        </div>
       </div>`;
     }).join('');
   }
 
-  async function saveStatementDueDate(ownerId, bankId, dueDate){
-    const ym = currentYearMonth();
-    const { error } = await sb.from('card_statements').upsert({
+  async function saveSchedule(ownerId, bankId){
+    const key = (ownerId + '-' + bankId);
+    const closingRaw = document.getElementById('sched-closing-' + key).value;
+    const dueRaw = document.getElementById('sched-due-' + key).value;
+    const offsetChecked = document.getElementById('sched-offset-' + key).checked;
+    const { error } = await sb.from('card_payment_schedules').upsert({
       household_id: currentHousehold.id,
       owner_id: ownerId,
       bank_id: bankId,
-      year_month: ym,
-      due_date: dueDate || null,
-    }, { onConflict: 'owner_id,bank_id,year_month' });
-    if (error) { alert('儲存繳款日失敗：' + error.message); return; }
+      closing_day: closingRaw ? Number(closingRaw) : null,
+      due_day: dueRaw ? Number(dueRaw) : null,
+      due_month_offset: offsetChecked ? 1 : 0,
+    }, { onConflict: 'owner_id,bank_id' });
+    if (error) { alert('儲存失敗：' + error.message); return; }
+    alert('已儲存，之後每個月都會自動套用這個日期。');
     await renderDueList();
   }
 
-  // ---- 總覽：近期繳款清單 ----
+  // 依 year_month + due_day + due_month_offset 算出實際繳款日期（處理月份天數與跨年）
+  function computeDueDate(yearMonth, dueDay, offset){
+    if (!dueDay) return null;
+    let [y, m] = yearMonth.split('-').map(Number);
+    m += (offset || 0);
+    if (m > 12) { m -= 12; y += 1; }
+    const lastDay = new Date(y, m, 0).getDate();
+    const d = Math.min(dueDay, lastDay);
+    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+
+  // ---- 總覽：近期繳款清單（用排程自動算，不用每月手動輸入）----
   async function renderDueList(){
     const el = document.getElementById('due-list');
     if (!el) return;
     const ym = currentYearMonth();
-    const { data: statements, error } = await sb
-      .from('card_statements')
-      .select('id, due_date, is_paid, owner_id, bank_id, card_owners(name), card_banks(name)')
+
+    const { data: schedules, error } = await sb
+      .from('card_payment_schedules')
+      .select('owner_id, bank_id, due_day, due_month_offset, card_owners(name), card_banks(name)')
       .eq('household_id', currentHousehold.id)
-      .eq('year_month', ym)
-      .not('due_date', 'is', null)
-      .order('due_date');
+      .not('due_day', 'is', null);
     if (error) { el.innerHTML = '<div class="status-line error">讀取失敗：' + error.message + '</div>'; return; }
+
     const pill = document.getElementById('hero-due-pill');
-    if (!statements || statements.length === 0) {
+    if (!schedules || schedules.length === 0) {
       el.innerHTML = '<div style="font-size:12px; color:var(--ink-3); padding:8px 0;">還沒有設定繳款日，去「設定」新增。</div>';
       pill.style.display = 'none';
       return;
     }
+
+    const dueRows = schedules.map(s => ({
+      ...s,
+      due_date: computeDueDate(ym, s.due_day, s.due_month_offset),
+    })).filter(r => r.due_date).sort((a, b) => a.due_date.localeCompare(b.due_date));
+
+    // 撈這個月的已繳款狀態
+    const { data: statements } = await sb
+      .from('card_statements')
+      .select('id, owner_id, bank_id, is_paid')
+      .eq('household_id', currentHousehold.id)
+      .eq('year_month', ym);
+    const paidMap = {};
+    (statements || []).forEach(s => { paidMap[s.owner_id + '|' + s.bank_id] = s; });
+
     const today = new Date(); today.setHours(0,0,0,0);
 
-    const unpaidUpcoming = statements.filter(s => !s.is_paid).sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+    const unpaidUpcoming = dueRows.filter(r => !paidMap[r.owner_id + '|' + r.bank_id]?.is_paid).sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
     if (unpaidUpcoming) {
       const due = new Date(unpaidUpcoming.due_date + 'T00:00:00');
       const diffDays = Math.round((due - today) / 86400000);
@@ -924,23 +1059,34 @@
       pill.style.display = 'none';
     }
 
-    el.innerHTML = statements.map(s => {
-      const due = new Date(s.due_date + 'T00:00:00');
+    el.innerHTML = dueRows.map(r => {
+      const key = r.owner_id + '|' + r.bank_id;
+      const existing = paidMap[key];
+      const isPaid = existing?.is_paid || false;
+      const due = new Date(r.due_date + 'T00:00:00');
       const diffDays = Math.round((due - today) / 86400000);
-      const daysText = s.is_paid ? '已繳款' : (diffDays < 0 ? `已逾期 ${-diffDays} 天` : diffDays === 0 ? '今天到期' : `剩 ${diffDays} 天`);
-      return `<div class="due-row ${s.is_paid ? 'paid' : ''}" onclick="togglePaid('${s.id}', ${!s.is_paid})">
+      const daysText = isPaid ? '已繳款' : (diffDays < 0 ? `已逾期 ${-diffDays} 天` : diffDays === 0 ? '今天到期' : `剩 ${diffDays} 天`);
+      return `<div class="due-row ${isPaid ? 'paid' : ''}" onclick="togglePaid('${r.owner_id}', '${r.bank_id}', '${r.due_date}', ${!isPaid})">
         <div class="check-circle"></div>
         <div class="info">
-          <div class="card-label">${escapeHtml(s.card_owners?.name || '')} · ${escapeHtml(s.card_banks?.name || '')}</div>
-          <div class="due-date">繳款日 ${s.due_date}</div>
+          <div class="card-label">${escapeHtml(r.card_owners?.name || '')} · ${escapeHtml(r.card_banks?.name || '')}</div>
+          <div class="due-date">繳款日 ${r.due_date}</div>
         </div>
         <div class="days">${daysText}</div>
       </div>`;
     }).join('');
   }
 
-  async function togglePaid(statementId, newValue){
-    const { error } = await sb.from('card_statements').update({ is_paid: newValue }).eq('id', statementId);
+  async function togglePaid(ownerId, bankId, dueDate, newValue){
+    const ym = currentYearMonth();
+    const { error } = await sb.from('card_statements').upsert({
+      household_id: currentHousehold.id,
+      owner_id: ownerId,
+      bank_id: bankId,
+      year_month: ym,
+      due_date: dueDate,
+      is_paid: newValue,
+    }, { onConflict: 'owner_id,bank_id,year_month' });
     if (error) { alert('更新失敗：' + error.message); return; }
     await renderDueList();
   }
@@ -1238,7 +1384,7 @@
     const listEl = document.getElementById('tx-list');
     listEl.innerHTML = '<div style="font-size:12.5px; color:var(--ink-3); padding:12px 0;">讀取消費明細中…</div>';
 
-    const ym = currentYearMonth();
+    const ym = selectedYearMonth();
     const { start, end } = getMonthRange(ym);
     document.getElementById('month-label').textContent = ym.replace('-', ' 年 ') + ' 月消費';
 
@@ -1294,7 +1440,7 @@
 
   // ---- 本月總支出合計（刷卡 + 固定支出） ----
   async function updateMonthGrandTotal(){
-    const ym = currentYearMonth();
+    const ym = selectedYearMonth();
     const { start, end } = getMonthRange(ym);
     const [{ data: txs }, { data: fxs }] = await Promise.all([
       sb.from('card_transactions').select('amount_twd').eq('household_id', currentHousehold.id).gte('date', start).lte('date', end),
@@ -1335,7 +1481,7 @@
         household_id: currentHousehold.id,
         item_name: name,
         amount: Number(amountRaw),
-        year_month: currentYearMonth(),
+        year_month: selectedYearMonth(),
       });
       if (error) throw error;
       document.getElementById('fx-name').value = '';
@@ -1361,7 +1507,7 @@
 
   async function renderFxList(){
     const el = document.getElementById('fx-list');
-    const ym = currentYearMonth();
+    const ym = selectedYearMonth();
     const { data: fxs, error } = await sb
       .from('card_fixed_expenses')
       .select('id, item_name, amount')
@@ -1383,7 +1529,7 @@
   async function renderCategoryRank(){
     const el = document.getElementById('category-rank');
     if (!el) return;
-    const ym = currentYearMonth();
+    const ym = selectedYearMonth();
     const { start, end } = getMonthRange(ym);
     const { data: txs, error } = await sb
       .from('card_transactions')
@@ -1413,22 +1559,141 @@
       </div>`).join('');
   }
 
-  // ---- 本月／本年 切換 ----
+  // ---- 本月／本年 切換 + 可切換的期間狀態 ----
   let yearMerchantTotals = {};
+  const now = new Date();
+  let selectedYear = now.getFullYear();
+  let selectedMonth = now.getMonth() + 1; // 1-12
+  const YEAR_RANGE = []; // 選單用的年份範圍：往前 4 年到明年
+  for (let y = now.getFullYear() - 4; y <= now.getFullYear() + 1; y++) YEAR_RANGE.push(y);
+
+  function selectedYearMonth(){ return selectedYear + '-' + String(selectedMonth).padStart(2, '0'); }
+
+  function isYearMode(){ return document.getElementById('btn-year').classList.contains('active'); }
+
+  function refreshPeriodLabel(){
+    const isYear = isYearMode();
+    const label = document.getElementById('period-label');
+    const nextBtn = document.getElementById('period-next');
+    if (isYear) {
+      label.textContent = selectedYear + ' 年';
+      nextBtn.disabled = (selectedYear === YEAR_RANGE[YEAR_RANGE.length - 1]);
+    } else {
+      label.textContent = selectedYear + ' 年 ' + selectedMonth + ' 月';
+      nextBtn.disabled = false;
+    }
+    buildPicker();
+  }
+
+  function stepPeriod(dir){
+    if (isYearMode()) {
+      const i = Math.min(YEAR_RANGE.length - 1, Math.max(0, YEAR_RANGE.indexOf(selectedYear) + dir));
+      selectedYear = YEAR_RANGE[i];
+      renderYearView();
+    } else {
+      selectedMonth += dir;
+      if (selectedMonth > 12) { selectedMonth = 1; selectedYear++; }
+      if (selectedMonth < 1) { selectedMonth = 12; selectedYear--; }
+      refreshMonthViewData();
+    }
+    refreshPeriodLabel();
+  }
+
+  async function refreshMonthViewData(){
+    await renderTxList();
+    await updateMonthGrandTotal();
+    await renderFxList();
+    await renderCategoryRank();
+  }
+
+  function buildPicker(){
+    const isYear = isYearMode();
+    const grid = document.getElementById('picker-grid');
+    const title = document.getElementById('picker-title');
+    grid.innerHTML = '';
+    if (isYear) {
+      title.textContent = '選擇年份';
+      grid.className = 'wheel-col';
+      YEAR_RANGE.forEach(y => {
+        const b = document.createElement('button');
+        b.textContent = y;
+        if (y === selectedYear) b.className = 'sel';
+        b.onclick = () => {
+          selectedYear = y; refreshPeriodLabel(); renderYearView();
+          b.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          setTimeout(closePicker, 250);
+        };
+        grid.appendChild(b);
+      });
+      requestAnimationFrame(() => {
+        const selBtn = grid.querySelector('button.sel');
+        if (selBtn) selBtn.scrollIntoView({ block: 'center' });
+      });
+      grid.onscroll = () => {
+        clearTimeout(grid._t);
+        grid._t = setTimeout(() => {
+          const mid = grid.getBoundingClientRect().top + grid.clientHeight / 2;
+          let best = 0, bestDist = Infinity;
+          Array.from(grid.children).forEach((btn, i) => {
+            const r = btn.getBoundingClientRect();
+            const d = Math.abs((r.top + r.height / 2) - mid);
+            if (d < bestDist) { bestDist = d; best = i; }
+          });
+          selectedYear = YEAR_RANGE[best];
+          Array.from(grid.children).forEach((btn, i) => { btn.className = i === best ? 'sel' : ''; });
+          document.getElementById('period-label').textContent = selectedYear + ' 年';
+          document.getElementById('period-next').disabled = (selectedYear === YEAR_RANGE[YEAR_RANGE.length - 1]);
+          renderYearView();
+        }, 150);
+      };
+      document.getElementById('picker-year-row').style.display = 'none';
+    } else {
+      title.innerHTML = '';
+      grid.className = 'picker-grid';
+      document.getElementById('picker-year-row').style.display = 'flex';
+      document.getElementById('picker-year-label').textContent = selectedYear;
+      for (let m = 1; m <= 12; m++) {
+        const b = document.createElement('button');
+        b.textContent = m + ' 月';
+        if (m === selectedMonth) b.className = 'sel';
+        b.onclick = () => { selectedMonth = m; refreshPeriodLabel(); refreshMonthViewData(); closePicker(); };
+        grid.appendChild(b);
+      }
+    }
+  }
+
+  function stepPickerYear(dir){
+    const i = Math.min(YEAR_RANGE.length - 1, Math.max(0, YEAR_RANGE.indexOf(selectedYear) + dir));
+    selectedYear = YEAR_RANGE[i];
+    document.getElementById('picker-year-label').textContent = selectedYear;
+    refreshPeriodLabel();
+    refreshMonthViewData();
+  }
+
+  function togglePicker(){ document.getElementById('period-picker').classList.toggle('open'); }
+  function closePicker(){ document.getElementById('period-picker').classList.remove('open'); }
+  document.addEventListener('click', (e) => {
+    const picker = document.getElementById('period-picker');
+    const label = document.getElementById('period-label');
+    if (picker && picker.classList.contains('open') && !picker.contains(e.target) && e.target !== label) {
+      closePicker();
+    }
+  });
 
   function showDetailsView(mode){
     document.getElementById('details-month-view').style.display = mode === 'month' ? 'block' : 'none';
     document.getElementById('details-year-view').style.display = mode === 'year' ? 'block' : 'none';
     document.getElementById('btn-month').classList.toggle('active', mode === 'month');
     document.getElementById('btn-year').classList.toggle('active', mode === 'year');
+    closePicker();
+    refreshPeriodLabel();
     if (mode === 'year') renderYearView();
   }
 
-  function currentYear(){ return new Date().getFullYear(); }
   function getYearRange(year){ return { start: year + '-01-01', end: year + '-12-31' }; }
 
   async function renderYearView(){
-    const year = currentYear();
+    const year = selectedYear;
     const { start, end } = getYearRange(year);
 
     document.getElementById('year-total-caption').textContent = year + ' 年累計消費';
@@ -1543,7 +1808,7 @@
     const matchKey = Object.keys(yearMerchantTotals).find(k => k.indexOf(q) !== -1);
     if (matchKey) {
       box.innerHTML = `<div class="merchant-result-card"><div><div class="name">${escapeHtml(matchKey)}</div>
-        <div class="cap">${currentYear()} 年累計消費</div></div>
+        <div class="cap">${selectedYear} 年累計消費</div></div>
         <div class="amt mono">NT$ ${yearMerchantTotals[matchKey].toLocaleString()}</div></div>`;
     } else {
       box.innerHTML = `<div class="merchant-empty">今年還沒有在「${escapeHtml(q)}」的消費紀錄</div>`;
@@ -1580,6 +1845,7 @@
   // 從 PDF 抓文字，依座標重建「一行一行」的順序（比原始抓取順序更接近視覺上的表格排列）
   async function extractPdfLines(pdf){
     const lines = [];
+    let fullText = '';
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
@@ -1591,32 +1857,82 @@
       });
       Object.keys(rows).map(Number).sort((a, b) => b - a).forEach(y => {
         const line = rows[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').replace(/\s+/g, ' ').trim();
-        if (line) lines.push(line);
+        if (line) { lines.push(line); fullText += line + '\n'; }
       });
     }
-    return lines;
+    return { lines, fullText };
   }
 
-  const NOISE_KEYWORDS = ['應繳', '循環', '利率', '查詢', '服務', '提醒', '網站', 'http', '客服', '頁', '額度', '回饋', '積點', '公告', '注意事項', '費用', '條款', '權益', '信用卡處', '本行', '謹慎理財', '總計', '合計', '小計', '結帳日', '繳款截止', '扣繳', '轉帳'];
+  // 表格儲存格文字換行時，PDF 會被拆成兩行（例如「連加*LINEPAY*HAO SHI YUAN」+「MTAIPEI」）。
+  // 把「沒有日期也沒有金額」的接續行併回前一行，還原成完整的一筆交易。
+  function mergeWrappedLines(lines){
+    const dateToken = /^(\d{2,4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2})$/;
+    const amountToken = /^-?[\d,]+(\.\d+)?$/;
+    const hasDate = l => l.split(' ').some(t => dateToken.test(t));
+    const hasAmount = l => l.split(' ').some(t => amountToken.test(t) && !dateToken.test(t));
+
+    const merged = [];
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+      // 這一行有日期、但還沒有金額 → 很可能後面被截斷了，往下併行直到湊齊金額或遇到下一筆的日期
+      if (hasDate(line) && !hasAmount(line)) {
+        let j = i + 1;
+        while (j < lines.length && !hasDate(lines[j]) && lines[j].length < 60) {
+          line += ' ' + lines[j];
+          if (hasAmount(line)) { j++; break; }
+          j++;
+        }
+        i = j - 1;
+      }
+      merged.push(line);
+    }
+    return merged;
+  }
+
+  // 從整份 PDF 文字裡找「年份」上下文，讓沒有寫年份的 MM/DD 日期知道該對應哪一年
+  function detectDocumentYear(fullText){
+    let m = fullText.match(/(\d{3})年(\d{1,2})月/); // 民國，例如「115年08月」
+    if (m) return Number(m[1]) + 1911;
+    m = fullText.match(/(20\d{2})年(\d{1,2})月/); // 西元，例如「2026年8月」
+    if (m) return Number(m[1]);
+    m = fullText.match(/\b(\d{3})\/\d{1,2}\/\d{1,2}\b/); // 帳單其他地方出現的三段式民國日期
+    if (m) return Number(m[1]) + 1911;
+    m = fullText.match(/\b(20\d{2})\/\d{1,2}\/\d{1,2}\b/);
+    if (m) return Number(m[1]);
+    return new Date().getFullYear(); // 找不到就用今年
+  }
+
+  const NOISE_KEYWORDS = ['應繳總額', '應繳金額', '循環信用', '循環利率', '年利率', '服務專線', '客服專線', '客服中心',
+    '提醒您', '網址', 'http', '第.*頁', '信用額度', '現金回饋計畫', '積點', '公告', '注意事項', '總費用年百分率',
+    '約定條款', '信用卡處', '本行將', '謹慎理財', '合計', '小計', '繳款截止', '自動轉帳扣繳', '自動扣繳',
+    '溫馨提醒', '防範信用卡', '權益訊息', '重要訊息', '國內預借現金'];
   const CURRENCY_CODES = ['KRW', 'JPY', 'USD', 'CNY', 'EUR', 'GBP', 'HKD', 'THB', 'AUD', 'SGD', 'MYR', 'VND'];
 
-  function rocOrGregorianToISO(dateStr){
-    const m = dateStr.match(/^(\d{2,4})\/(\d{1,2})\/(\d{1,2})$/);
-    if (!m) return null;
-    let [, y, mo, d] = m;
-    y = Number(y);
-    if (y < 200) y += 1911; // 民國年
-    return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  function rocOrGregorianToISO(dateStr, contextYear){
+    let m = dateStr.match(/^(\d{2,4})\/(\d{1,2})\/(\d{1,2})$/);
+    if (m) {
+      let [, y, mo, d] = m;
+      y = Number(y);
+      if (y < 200) y += 1911; // 民國年
+      return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+    m = dateStr.match(/^(\d{1,2})\/(\d{1,2})$/); // 只有月/日，沒有年份
+    if (m && contextYear) {
+      const [, mo, d] = m;
+      return `${contextYear}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+    return null;
   }
 
-  function parseGenericBankLines(lines){
+  function parseGenericBankLines(rawLines, contextYear){
     const results = [];
-    const dateToken = /^\d{2,4}\/\d{1,2}\/\d{1,2}$/;
+    const dateToken = /^(\d{2,4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2})$/;
     const amountToken = /^-?[\d,]+(\.\d+)?$/;
+    const lines = mergeWrappedLines(rawLines);
 
     lines.forEach(line => {
-      if (line.length < 6 || line.length > 140) return;
-      if (NOISE_KEYWORDS.some(k => line.includes(k))) return;
+      if (line.length < 6 || line.length > 160) return;
+      if (NOISE_KEYWORDS.some(k => new RegExp(k).test(line))) return;
 
       const tokens = line.split(' ').filter(Boolean);
       const dateIdxs = tokens.map((t, i) => dateToken.test(t) ? i : -1).filter(i => i >= 0);
@@ -1633,7 +1949,7 @@
       if (!amount || amount <= 0) return; // 忽略 0 元或負數（多為退款/回饋，先不自動帶入）
 
       const firstDateIdx = dateIdxs[0];
-      const iso = rocOrGregorianToISO(tokens[firstDateIdx]);
+      const iso = rocOrGregorianToISO(tokens[firstDateIdx], contextYear);
       if (!iso) return;
 
       // 描述：日期 token 與金額 token 之間，扣掉其他日期 token 與幣別代碼
@@ -1664,6 +1980,46 @@
 
   let pdfCandidates = [];
   let pdfCategoryOptions = [];
+  let pdfTargetTotal = null;
+
+  // 在 PDF 文字裡找「本期新增/本期應繳」這類標籤旁邊的金額，當作核對用的基準數字
+  function findStatementTotalHint(lines){
+    const labels = ['本期新增(含調整)款項', '本期新增(含調整)金額', '本期新增金額', '本期新增款項',
+      '本期新增(含調整)', '本期新增', '本期消費金額合計', '本期應繳總額', '本期應繳金額', '本期應繳總金額', '本期金額合計'];
+    for (const label of labels) {
+      for (const line of lines) {
+        const idx = line.indexOf(label);
+        if (idx === -1) continue;
+        const after = line.slice(idx + label.length);
+        const m = after.match(/-?[\d,]+(?:\.\d+)?/);
+        if (m) return { label, amount: Number(m[0].replace(/,/g, '')) };
+      }
+    }
+    return null;
+  }
+
+  function updatePdfTotalCheck(){
+    const box = document.getElementById('pdf-total-check');
+    if (!box) return;
+    let checkedTotal = 0;
+    pdfCandidates.forEach((c, i) => {
+      const rowEl = document.getElementById('pdf-row-' + i);
+      if (!rowEl || rowEl.classList.contains('excluded')) return;
+      const amt = Number(rowEl.querySelector('.pdf-amount').value) || 0;
+      checkedTotal += amt;
+    });
+
+    if (!pdfTargetTotal) {
+      box.className = 'pdf-total-check unknown';
+      box.innerHTML = `<div class="row"><span>目前勾選加總</span>NT$ ${checkedTotal.toLocaleString()}</div><div style="font-size:11px;">在 PDF 上找不到可以核對的總額欄位，請自行跟帳單核對</div>`;
+      return;
+    }
+    const isMatch = Math.abs(checkedTotal - pdfTargetTotal.amount) < 1;
+    box.className = 'pdf-total-check ' + (isMatch ? 'match' : 'mismatch');
+    box.innerHTML = `
+      <div class="row"><span>PDF 上「${escapeHtml(pdfTargetTotal.label)}」</span>NT$ ${pdfTargetTotal.amount.toLocaleString()}</div>
+      <div class="row" style="text-align:right;"><span>目前勾選加總</span>NT$ ${checkedTotal.toLocaleString()} ${isMatch ? '✓ 一致' : '⚠ 不一致'}</div>`;
+  }
 
   const PDF_PW_KEY_PREFIX = 'card_wallet_pdf_pw_';
   function getSavedPdfPassword(bankId){ return localStorage.getItem(PDF_PW_KEY_PREFIX + bankId) || ''; }
@@ -1716,8 +2072,10 @@
       }
 
       statusLine.textContent = '解析文字中…';
-      const lines = await extractPdfLines(pdf);
-      const candidates = parseGenericBankLines(lines);
+      const { lines, fullText } = await extractPdfLines(pdf);
+      const contextYear = detectDocumentYear(fullText);
+      const candidates = parseGenericBankLines(lines, contextYear);
+      pdfTargetTotal = findStatementTotalHint(lines);
 
       if (candidates.length === 0) {
         statusLine.textContent = '沒有抓到看起來像交易明細的資料，可能是這份帳單格式跟預期差太多，或者這期沒有消費紀錄。';
@@ -1752,10 +2110,10 @@
 
     list.innerHTML = pdfCandidates.map((c, i) => `
       <div class="pdf-row" id="pdf-row-${i}">
-        <input type="checkbox" checked onchange="document.getElementById('pdf-row-${i}').classList.toggle('excluded', !this.checked)">
+        <input type="checkbox" checked onchange="document.getElementById('pdf-row-${i}').classList.toggle('excluded', !this.checked); updatePdfTotalCheck();">
         <input type="date" class="pdf-date" value="${c.date}">
         <input type="text" class="pdf-store" value="${escapeHtml(c.store)}">
-        <input type="number" class="pdf-amount" value="${c.amount}">
+        <input type="number" class="pdf-amount" value="${c.amount}" oninput="updatePdfTotalCheck();">
         <select class="pdf-cat">${catOptionsHtml}</select>
         ${c.currency ? `<div class="pdf-flag">偵測到海外消費：${c.currency} ${c.foreignAmount ?? ''}（分類可自行調整，幣別已記錄）</div>` : ''}
       </div>`).join('');
@@ -1764,11 +2122,13 @@
     pdfCandidates.forEach((c, i) => { c._rowId = i; });
 
     area.style.display = 'block';
+    updatePdfTotalCheck();
     area.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   document.getElementById('pdf-cancel-btn').addEventListener('click', () => {
     pdfCandidates = [];
+    pdfTargetTotal = null;
     document.getElementById('pdf-review-area').style.display = 'none';
     document.getElementById('pdf-file-input').value = '';
   });
